@@ -932,3 +932,310 @@ CLI efectiv pentru ajustări (JSON-uri echivalente `scenes --set`):
 Scriptul privat reluabil `correct-layout.py` păstrează snapshoturi înainte/după.
 Nu s-a modificat generatorul pentru aceste ajustări. AI/Pexels fără backend/key
 și aprobarea umană sunt limitele reale rămase; integrala assets este încă TODO.
+
+## Integral assets: audit, recovery și continuare AI07 — 2026-10-19 UTC
+
+Măsurat la 2026-10-19T19:47:08.777923+00:00; media 0.1.0, asset_schema=1, pipeline scene-assets-v1,
+run **5ba454a524f74ffc8991987e14b12cf1**. Dovezi private în
+`work/media/assets-integral-20261018/recovery-20261019/`.
+La pornire Git clean. Audit READ-ONLY înaintea modificărilor: documente,
+procese sandbox și separat gazdă, lockuri, materiale/library/output/runs/batches,
+receipts/stări/loguri și acceptanțele istorice. Niciun worker media vechi activ.
+
+Landscape: MP4 publicat PASSED și receipt FFmpeg returncode 0;
+SHA256 `df10d1c3377ae0645d661d2492cd2983a28652e0effff66bee7dfdc4ba85e765`.
+19/19 scene cu identity/hash/receipts compatibile. Portrait: niciun MP4 final,
+12 MKV numerotate, dar numai 11 receipts valide; receipt scene-00011 gol și
+MKV prematur terminat, **405/735 cadre** față de contractul complet. FFmpeg a
+returnat 0 cu mesajul File ended prematurely: exit code singur nu este acceptanță.
+Două part-uri istorice portrait păstrate, inclusiv unul gol. Cauza opririi
+anterioare rămâne nedeterminată, fără returncode atribuit retrospectiv.
+
+`before.json` păstrează 175 fișiere cu hash/mtime;
+`invalid-checkpoint.json` și `preserved-pair.json` documentează arhivarea perechii.
+`resume.py` a folosit CLI-ul existent, numai portrait, fără force/rerender global,
+în namespace fără rețea. **11 scene reutilizate / 8 regenerate** (1 invalidă,
+7 lipsă). Scenele reutilizate sunt validate prin identity/hash/decodare/cadre exacte.
+Landscape-ul, raportul, credits și toate scenele sale rămân identice hash/mtime.
+
+Ambele baseline-uri: H.264/yuv420p, AAC mono 22050 Hz, 30 fps, HD pe fiecare
+orientare; full_decode PASSED, 20665 cadre, A/V 9,841 ms. Verificarea CLI separată
+landscape este în `landscape-verify-retry.stdout`, returncode 0. Prima tentativă
+concurentă a fost refuzată de lock-ul propriului recovery, păstrată separat în
+`landscape-verify-command.json`/`.stderr`; nu este un eșec al exportului.
+Portrait a trecut verify complet înaintea publicării atomice.
+`final-audit.json`: PCM master exact față de sursa temporală existentă,
+aliniere/cronologie neschimbate, același audio AAC decodat între profile,
+subtitrări confruntate cu generatorul și pozițiile efective ale scenelor,
+19 credits/profil, scanare video completă pentru negru și cadre de review.
+Protecție originale: 720 fișiere din snapshotul inițial
+confirmate neschimbate. Nu s-au modificat TTS, modele, inputuri, cache audio sau CTC.
+
+Continuare efectivă AI07: candidate 3 existent pe scene-016 numai portrait,
+variantă tehnică NEEDS_REVIEW. Comandă în `partial-command.json`, destinație nouă
+`output/media/assets-integral-20261019-portrait-edit`. **18 scene reutilizate,
+1 recalculată**, numai MKV-ul și receipt-ul scene-00015 portrait schimbate.
+`partial-rerender-proof.json`: 189 fișiere comparate neschimbate,
+ambele baseline-uri, audio/master/aliniere/timeline/titlu, thumbnails, blobs și
+încercările de download păstrate. SQLite usage înregistrează selecția locală;
+nu se pretinde că indexul de usage este imuabil. AAC decodat identic cu baseline.
+Verify al noului MP4 complet PASSED înainte de publicare. Fără HTTP/discovery/download.
+
+Review: 19 scene, 81 referințe de candidați,
+21 referințe locale, 16 scene cu minimum trei candidați,
+numai 4 cu minimum trei candidați descărcați.
+Index nou Markdown/HTML cu profile, creator/licență/status și mapping stabil;
+deciziile JSON sunt goale implicit și nu se aplică automat. Contact sheets
+existente reutilizate, preview schimbat numai pentru scena editată când contractul diferă.
+Fallback-urile scene-003/005/006/008/009/011/013/015 rămân: relevanță/provenance/
+licență insuficiente, fără înlocuitor local justificat și fără problemă de orientare
+demonstrată. Analiza individuală/contextul sunt în `recovery-20261018/fallback-review.md`.
+
+Bibliotecă: 59 înregistrări/59 blobs distincte,
+46976141 octeți total / 46730671 octeți blobs;
+17 Commons, 1 Openverse, 41 graphic, 0 Pexels, 0 alte assets locale,
+0 înregistrări duplicate după checksum. Necunoscute: selecții
+0, library 0, referințe de candidați
+0. Nu este un număr istoric inventat de downloaduri evitate.
+
+Nu s-a schimbat codul produsului/dependențele. Nu s-au rerulat suitele istorice:
+5 passed/3,530 s în `integral-recovery-20261018.xml` și
+5 passed/3,207 s în `integral-final-contracts.xml` sunt probe anterioare,
+nu teste noi. Istoricul integral păstrează și prima probă `integral-focused.xml`
+(3 erori de setup), urmată de `integral-focused-fixed.xml` (3 passed/2,619 s);
+aceste rezultate nu au fost șterse sau reinterpretate ca probe noi.
+Probe noi: recovery real, verify landscape, două verificări de
+publicare portrait, audit PCM/subtitrări/credits/black/frames și partial rerender
+integral offline. Review auditiv/editorial nu este dedus din aceste probe.
+
+Continuarea UX include `ctc-review.json/.md/.html` pentru alinierea curentă,
+170 intervale păstrate exact, 17 normalizări vizibile și redare din MP4-ul existent.
+Testele locale ale exportului de decizii (`review-test.json`, `ctc-test.json`)
+verifică omisiunea scenelor/unităților neatinse, ID/profil/snapshot, reviewer
+obligatoriu, conversia explicită secunde→eșantioane și refuzul corecțiilor vide.
+Nu s-a rulat un browser pentru aceste pagini; aspectul și redarea în browser
+rămân nevalidate. Deciziile nu sunt aplicate automat și nicio unitate CTC nu
+este aprobată prin generarea pachetului.
+
+## 2026-10-19 UTC — CTC review sigur și subtitrări pe sample
+
+Media 0.1.0; dovezi private `work/media/subtitles-20261019/`, sample run
+`3879e965ddf84444a8dbbef6bfff34be`. Starea inițială a fost citită din plan și
+`recovery-20261019/final-acceptance.json`: recovery/export integral încheiat,
+19 scene, 3 MP4-uri relevante PASSED, 59 assets, 170 unități CTC cu scor redus.
+Niciun recovery sau render integral nou; fără sinteză, recalculare CTC,
+download/discovery, ștergeri, staging sau commit. Codul etapei este local,
+fără revizie Git inventată; copiile executate sunt păstrate în proiectul sample.
+
+**CTC tooling.** Raportul actual `ctc-review-v2.json/.md/.html` verifică efectiv
+sursele și păstrează alignment_key, source_text_sha256, audio_sha256. Browserul
+permite redarea intervalului, text/confidence/start/end, șase acțiuni explicite,
+reviewer și timestamp. Refuză export gol/valori invalide; exportă numai alegerile.
+`alignment-review --validate` este read-only; `--apply` validează identități,
+indici, eșantioane, limite și suprapuneri înainte de publicarea jurnalizată.
+Fixture tests verifică backup exact, before/after, unități neatinse identice,
+refuz hash mismatch, idempotentă și reluarea publicării întrerupte. Nicio
+decizie fictivă nu a fost aplicată materialului real. Cele 170 unități rămân
+pending; review uman CTC nu este declarat trecut.
+
+**Browser real.** Playwright-core și Chromium existente au fost folosite fără
+instalare. Lansarea sandbox a fost refuzată de crashpad/setsockopt; rularea
+autorizată pe gazdă a trecut. `browser-test.cjs`, `browser-v2-result.json`:
+Chromium 149.0.7827.55, zero erori JS; scene review încarcă 19 scene, afișează
+alternative, landscape/portrait și exportă selecția explicită. CTC încarcă
+170 unități, metadata video 688,833333 s, seek/play/pause, acțiuni, reviewer
+obligatoriu, refuz gol/negativ și export cu cele trei identități/timestamp.
+Downloads sunt etichetate BROWSER_AUTOMATION_FIXTURE_DO_NOT_APPLY și păstrate
+ca probe; nu sunt decizii umane. Screenshots păstrate separat.
+
+**Sample-uri și verify.** Trei extrase din materialul existent: scene-001 video,
+scene-004 foto și scene-003 fallback; 41 unități, opt low-confidence originale,
+text scurt/lung, 362943 eșantioane la 22050 Hz, 16,46 s. Cut-urile sunt tehnice,
+neascultate. Copia video are freeze explicit numai pentru fracția finală de
+cadru. Încercarea inițială cu short_policy=error a fost refuzată corect și
+păstrată (`classic-command.json`, stderr, run eșuat), fără afectarea sursei.
+
+Șase MP4-uri: classic/highlight/scroll × landscape 1920×1080 și portrait
+1080×1920, sub `sample-project-v1/output/`. Toate au H264/AAC, 30 FPS,
+494 cadre confirmate prin ffprobe și full decode suplimentar. Video
+16,466666667 s, audio decodat 16,486167800 s, diferență A/V 19,501134 ms.
+Acest delta nu dovedește precizia semantică a timingului CTC. Audio-ul PCM
+decodat este identic în toate șase:
+`68bac45cfce49ebaa7aa5b3466896cb67d812005ff471216fd53b88e7ca56929`.
+
+`subtitle-acceptance.json`, `frames/*/*/evidence.json` păstrează comenzile,
+numărul cadrelor, hash-urile și momentele înainte/în timpul/după highlight și
+la limitele de linie/scroll. Unicode/escaping/wrapping/safe area sunt acoperite
+de contractele ASS și teste; active word este definit pe [start,end), pauzele
+sunt neutre. Pe fallback static masca galbenă își schimbă poziția între cuvinte
+în ambele profile și rămâne în safe area. Scroll pe fotografie statică arată
+mai multe cadre intermediare diferite, apoi poziție stabilă; `scroll_seconds`
+implicit 180 ms. Nu se deduce mișcarea subtitrării dintr-un fundal video.
+ASS-ul regenerat de codul final este byte-identic cu cel al generatorului
+executat pentru toate cele șase sample-uri; completarea rezervării pentru
+titlul global și validările de tip nu schimbă aceste sample-uri fără titlu global.
+
+**Inspectare vizuală limitată.** Agentul a inspectat cele 12 contact sheets,
+cadrele fallback full-size landscape/portrait și varianta boxed/verde.
+Textul românesc este lizibil în cadrele inspectate, highlight-ul se schimbă,
+titlul este separat; regula fallback ridică subtitrarea deasupra ramei.
+Clip-ul viewport-ului la intrarea unei linii scroll este intenționat.
+Aceasta este inspecție de cadre selectate de agent, fără vizionare integrală,
+fără audiție și fără aprobare editorială sau CTC umană.
+
+**Cache/protecție/offline.** Classic a generat cele șase variante de scenă;
+highlight și scroll au reutilizat fiecare toate șase, zero rerandate.
+Schimbarea separată de preset boxed, culoare și margin_v portrait a trecut
+verify cu 3 reuse/0 rerender, audio identic, alt MP4 final.
+`style-invalidation.json`: 13 fișiere sample scene/receipts/master rămân
+hash+mtime identice; manifestul sample primește numai referința exportului
+în plus, alignment/timeline identice. Asserția inițială prea largă includea
+manifestul cu export append; eșecul driverului este păstrat, verificarea
+corectă este în `style-audit.py`. Nu s-a repetat randarea pentru această corecție.
+`protection-after.json` confirmă 720 fișiere protejate hash-identice,
+6 fișiere baseline hash+mtime identice (3 MP4, material, input, library index),
+alignment/timeline originale identice și 38 scene keys integrale identice,
+inclusiv când se adaugă configurația caption-only. Renderurile sample au rulat
+în namespace fără rețea (`unshare -Urn`); nu s-a schimbat pipeline-ul de assets.
+
+**Teste automate rulate în copii izolate.** Rapoarte XML/log în
+`work/media/asset-discovery-20261017/`:
+
+| Probă | Rezultat | Scop |
+|---|---|---|
+| subtitles-review-focused-20261019 | 32 passed / 7 failed | Eroare de referință a fixture-ului, istoric păstrat. |
+| subtitles-review-fixed-20261019 | 39 passed / 23,96 s | Corecție fixture, CTC/config/layout/cache. |
+| subtitles-media-regression-20261019 | 104 passed / 1 skipped / 161,55 s | Suita media comună, după integrarea CLI/config/render. |
+| subtitles-review-bindings-20261019 | 39 passed / 30,33 s | Hash-uri efective ale fișierelor sursă. |
+| subtitles-pixel-review-final-20261019 | 41 passed / 27,14 s | Raster real cu FFmpeg, highlight înainte/pauză/după, fallback safe floor. |
+| subtitles-last-config-title-20261019 | 41 passed / 24,19 s | Ultimele validări de tip și rezervarea titlului global. |
+
+Nu se însumează rerulările ca teste distincte. Ultimele schimbări mici au fost
+acoperite focalizat; suita media nu a fost repetată inutil. Testele istorice
+costisitoare TTS/CTC/export integral nu au fost reluate. Fără dependențe noi.
+
+Statusuri curente: technical_status=passed, browser_review=passed,
+visual_sample_review=agent_sampled, listening_review=not_listened,
+editorial_review=not_reviewed, ctc_human_review=pending.
+ASS/highlight/scroll și CTC tooling DONE tehnic; acceptanța umană rămâne
+restantă. EXTERNAL AUDIO MIX este pregătit în plan, fără mix nou efectuat.
+
+## 2026-10-19 UTC — EXTERNAL AUDIO MIX
+
+Media 0.1.0; probe private în `work/media/audio-mix-20261019/`, proiect izolat
+`sample-project-v1`. Audit înainte de cod: AGENTS, README, plan, TEST_RESULTS,
+THIRD_PARTY_NOTICES, core/timeline/assemble, derive split/merge, renderer/cache,
+normalizarea existentă din rec_tts/audio.py și rec.json. Convenția confirmată:
+22050 Hz mono, -19 LUFS, -2 dBTP, LRA 11. Etapa CTC/subtitrări era încheiată
+tehnic; nu a fost reluată. Narațiunea și library au rămas surse imuabile.
+
+**Implementare.** `audio_mix.py` și `media audio-mix` importă opțional rețeta
+aditivă material.audio_mix: narration implicit obligatorie + music/sfx/ambience
+locale, checksum/provenance și probe reale. Config în secunde/HH:MM:SS.fff,
+intern eșantioane half-up. Sursele sunt verificate prin hash/FFprobe/full decode,
+inclusiv numărul eșantioanelor decodate după conversia ratei. Gain independent,
+trim/source intervals, fades validate, loop explicit și rampe de 5 ms configurabile
+la frontiere. SWR fără dither, downmix medie aritmetică explicită, DSP float și
+WAV final PCM s32 mono la rata narațiunii. Niciun stream audio din scenele video
+nu este activat implicit. Nu există rețea, model nou sau dependență nouă.
+
+Ducking este o anvelopă continuă, limitată la amount_db, derivată numai din
+energia RMS a narațiunii în blocuri de 10 ms, cu attack/release configurabile.
+Nu este ASR și nu modifică CTC. Normalizarea este finală, după mix, fără
+normalizare per track sau hard limiter ascuns. Sumele float peste domeniul
+loudnorm sunt atenuate global și remăsurate înainte de cele două treceri;
+atenuarea este raportată. Normalization off păstrează balanța și aplică numai
+atenuarea statică de protecție peak când este necesară. Disabled mix este PCM
+narativ identic și ignoră fișierele externe lipsă/modificate.
+
+**Probe măsurate.** `ducking-proof.json`: fundal 1000 Hz și narațiune fixture
+300 Hz, proiecție ortogonală pe ferestre controlate [1,1.5] s și [3.4,3.9] s.
+Amplitudine în voce 0,0075712721, în pauză 0,0301049077: diferență **11,9893689 dB**
+pentru amount_db=12. Atacul inițial este măsurabil înaintea atenuării stabilizate.
+Acestea sunt probe tehnice controlate, fără pretenție de audiție pe voce reală.
+
+`sfx-timing-proof.json`: SFX 48000 Hz stereo introdus la 2,125 s, cuantizat la
+eșantionul 46856 / 22050 Hz; primul eșantion nenul măsurat este 46856, eroare
+**0 eșantioane**. Toleranța testului este două eșantioane (~91 μs) pentru pragul
+de detecție după resampling. Cuantizarea timestampului însuși este cel mult
+jumătate de eșantion și nu este legată de FPS. Loop/no-loop, fade-in/out și
+saltul de frontieră loop sunt măsurate pe semnal; tăcerea este verificată separat.
+
+**Sample cu narațiunea existentă.** Copie a sample-ului anterior, aceeași
+cronologie și aliniere, 41 unități, 362943 eșantioane / 16,46 s, fără sinteză.
+Fixture-uri locale: music 44100 Hz stereo, SFX 48000 Hz stereo și ambience
+48000 Hz stereo. 0–2 s numai narațiune, music de la 2 s, ambience de la 3 s,
+SFX la 7,125 s, fades/loop/ducking explicite. `sample-activity.json` păstrează
+intervalele de energie sub prag; cea mai lungă pauză detectată este 0,339229 s,
+fără interpretare semantică/umană a acesteia.
+
+A/B separate: `sample-project-v1/output/narration-only/mix.wav` și
+`output/mixed-final/mix.wav`. Ambele au același narration_sha256:
+`cc107be35d45788150ae73e49166e4c53f4393255eb40cdb8312c3e914757608`.
+WAV mix: 362943 eșantioane exact, 22050 Hz mono, **-18,97 LUFS / -2,00 dBTP**,
+peak -1,999315 dBFS; normalizare finală efectivă dynamic, raportată.
+Niciun drift de eșantioane. Primele probe mixed sunt păstrate separat de
+mixed-final, fără suprascrierea baseline-ului.
+
+**Un MP4 sample.** `output/mixed-video/portrait.mp4`: video H264 existent
+1080×1920, 30 FPS, 494 cadre, copiat cu streamhash SHA256 identic; modul
+highlight ars este identic. Audio AAC decodat schimbat conform mixului:
+`248c22ae1ed83bab4e53462b0da45dcfcb68c4f2070790f21b835845629c3a81`.
+AAC **-19,00 LUFS / -2,00 dBTP**, video 16,466667 s, audio decodat 16,486168 s,
+diferență A/V **19,501134 ms** (padding codec, nu dovadă de precizie CTC).
+Full decode audio/video trecut înainte de publicare. Remuxarea refuză dacă
+streamhash-ul video diferă; și prima compoziție render cu mix verifică AAC-ul
+înainte de publicare, nu numai WAV-ul PCM.
+
+**Split/merge/cache/atomicity.** Derivatele păstrează contexte DSP și ferestre
+în eșantioane; părintele este mixat în contextul lui, apoi decupat. Testul
+split [0,3] + [3,8] s → merge reconstruiește PCM-ul mixului părinte exact,
+cu ducking și normalizare active. Configurațiile muzicale distincte la merge
+sunt păstrate separat; nu se normalizează global încă o dată. Narațiuni cu
+rate diferite la merge rămân refuzate fără conversie explicită. Pauzele existente
+nu sunt întinse/scurtate; noi intro-uri/pauze configurabile rămân TODO.
+
+Schimbarea gain/timing/fade/loop schimbă fingerprint-ul mixului, nu scene_key,
+timeline, alignment sau sursele TTS. Testul renderer narration-only → mixed
+reutilizează picture_request, copiază pachetele video și instalează un generator
+de subtitrări care ar eșua dacă ar fi apelat: nu este apelat. Renderul sample
+real este remuxare explicită a baseline-ului istoric, fără scene/subtitle generation.
+Cache hit este hash-bound; două calcule în cache-uri proaspete produc același
+SHA256 al WAV-ului. Retry păstrează .part și state/command/stderr/returncode.
+O întrerupere simulată după scrierea .part și un eșec FFmpeg real cu filtru
+intenționat inexistent nu publică mix.wav/receipt valid; retry ulterior trece.
+
+**Teste noi, copii izolate, fără rețea.** Rapoarte în
+`work/media/asset-discovery-20261017/` (namespace `unshare -Urn` pentru probele
+corectate și regresia finală):
+
+| Probă | Rezultat | Conținut |
+|---|---|---|
+| audio-mix-focused-20261019 | 23 passed / 4 failed / 88,55 s | Istoric păstrat: downmix cu gain implicit, limită half-sample și loudnorm peste domeniul measured_I. |
+| audio-mix-fixed-20261019 | 27 passed / 103,44 s | Corecțiile DSP/config, split/merge, cache, atomicity și remux. |
+| audio-mix-media-regression-20261019 | **135 passed / 1 skipped / 283,25 s** | Suita media comună, inclusiv CTC/subtitles/assets/partial rerender/offline. |
+| audio-mix-determinism-20261019 | 1 passed / 7,95 s | Două calcule proaspete → WAV SHA256 identic. |
+| audio-mix-final-boundaries-20261019 | 2 passed / 19,35 s | Eșec FFmpeg real/retry și salt loop/fades. |
+| audio-mix-aac-final-20261019 | 2 passed / 20,66 s | Ultima gardă AAC pe prima compoziție și reutilizare video fără subtitle generation. |
+
+Ultima gardă AAC și detaliul suplimentar al inspectorului CLI au fost verificate
+focalizat/live după copia folosită de regresia comună; nu s-a repetat inutil
+întreaga suită. Rerulările nu se însumează ca teste distincte. `git diff --check`
+și parsarea AST au trecut; fără rularea suitelor istorice costisitoare TTS/CTC
+sau export integral. Nicio instalare, nicio operațiune Git de staging/commit.
+
+**Protecții și limite.** `final-acceptance.json` verifică **753 fișiere hash+mtime
+identice**, incluzând cele 720 protejate anterior, sursele CTC/subtitle și
+sample-urile/intermediarii/captions anteriori. Cele 38 scene keys integrale sunt
+identice; library/index, input/text.txt, modelele, audio-ul și alignment originale
+sunt păstrate. Niciun integral rerandat. Statusuri:
+technical_audio_status=passed, listening_review=not_listened,
+editorial_review=not_reviewed, ctc_human_review=pending.
+
+EXTERNAL AUDIO MIX este DONE tehnic; REAL MUSIC ACCEPTANCE este PARTIAL /
+READY_FOR_USER_AUDIO. Auditul assets/materials a identificat numai surse de
+narațiune, fără track muzical aprobat pentru publicare. Utilizatorul trebuie să
+aleagă/furnizeze un fișier local și metadatele sale, apoi să asculte A/B. Nu s-a
+descărcat/selectat muzică și nu se declară audiție umană. Index: `samples.html`.
+README, planul canonic și AGENTS actualizate; THIRD_PARTY_NOTICES neschimbat,
+deoarece se folosesc numai biblioteca standard și FFmpeg/Pillow deja documentate.

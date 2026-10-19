@@ -13,7 +13,8 @@ from PIL import Image
 from PIL import __version__ as pillow_version
 
 from .core import ROOT, VERSION, assemble, checked, config, ff, key, load, now, probe, read, reference, resolve, sha, tool, write
-from .content import fit_image, subtitle_files, text_layer
+from .content import fit_image, text_layer
+from .subtitles import subtitle_files
 from . import asset_render, asset_scenes
 
 # Audited legacy pixel/assembly path stays unchanged; additive branches are versioned.
@@ -96,6 +97,9 @@ def verify(path, expected=None):
 
 
 def scene_key(scene, size, c, title, single):
+    # Caption-only options are final composition, not scene pixels. Preserve the
+    # pre-style identity exactly for existing receipts, including legacy scenes.
+    c={k:v for k,v in c.items() if k!='subtitle_style'}
     if scene.get('asset_schema'):return asset_render.identity(scene,size,c)
     # Version describes the scene pixels/timestamps, independently of final mux.
     return key(dict(pipeline='ffv1-cfr-padding-v2', scene=scene, size=size,
@@ -198,6 +202,10 @@ def render(value, selections,c,image=None,subtitles='off',title=None,force=False
             pcm=assemble(document,m,pcm)
             write(pcm_receipt,dict(request=audio_key,sha256=sha(pcm),path=pcm.name))
         pcm=work/read(pcm_receipt)['path']
+        mix_report=None
+        if m.get('audio_mix'):
+            from . import audio_mix
+            pcm,mix_report=audio_mix.render(document,m)
         for name,size in selections.items():
             output=Path(output_root or ROOT/'output/media').resolve()/m['id']/name/'video.mp4';output.parent.mkdir(parents=True,exist_ok=True)
             report_path=output.with_suffix('.report.json')
@@ -206,11 +214,40 @@ def render(value, selections,c,image=None,subtitles='off',title=None,force=False
             implementations={n:sha(Path(__file__).parent/n) for n in ('core.py','content.py','video.py')}
             if not extended:implementations['video.py']=LEGACY_VIDEO_IMPLEMENTATION
             else:implementations['asset_render.py']=sha(asset_render.__file__)
-            request=key(dict(version=VERSION,pillow=pillow_version,ffmpeg_sha256=sha(tool('ffmpeg')),implementation=implementations,timeline=m['timeline'],scenes=scenes,profile=size,config=c,alignment=m['alignment'] if subtitles!='off' else None,subtitles=subtitles,title=title,font=sha(c['font'])))
+            final_config={k:v for k,v in c.items() if k!='subtitle_style'}
+            if subtitles!='off':
+                from .subtitle_style import effective as caption_style
+                style=caption_style(c,size,name);final_config['subtitle_style']=style
+                implementations.update({n:sha(Path(__file__).parent/n) for n in ('subtitles.py','subtitle_style.py')})
+                implementations['subtitle_font']=sha(style['font'])
+            request=key(dict(version=VERSION,pillow=pillow_version,ffmpeg_sha256=sha(tool('ffmpeg')),implementation=implementations,timeline=m['timeline'],scenes=scenes,profile=size,config=final_config,alignment=m['alignment'] if subtitles!='off' else None,subtitles=subtitles,title=title,font=sha(c['font'])))
+            picture_request=key(dict(pipeline='composed-picture-v1',size=size,config=final_config,timeline=m['timeline'],scenes=scenes,
+                alignment=m['alignment'] if subtitles!='off' else None,subtitles=subtitles,title=title,
+                implementation={n:sha(Path(__file__).parent/n) for n in ('content.py','asset_render.py','subtitles.py','subtitle_style.py')},
+                font=sha(c['font']),subtitle_font=implementations.get('subtitle_font'),pillow=pillow_version,ffmpeg=sha(tool('ffmpeg'))))
+            if mix_report:request=key(dict(picture=request,audio_mix=mix_report['request']))
             if output.exists() and not force:
                 if report_path.exists() and read(report_path).get('request')==request and read(report_path).get('sha256')==sha(output):
                     results.append(dict(path=str(output),already_complete=True,verification=verify(output)));continue
                 raise ValueError(f'Export existent: {output}; --force explicit necesar.')
+            # Audio changes reuse a previously composed picture, including burned
+            # subtitles. The normal scene/ASS path is not entered in this branch.
+            if mix_report:
+                baseline=None
+                for export in reversed(m.get('exports',[])):
+                    if export.get('profile')!=name or not export.get('report'):continue
+                    source=resolve(document,export['path']);rp=resolve(document,export['report']['path'])
+                    if source.is_file() and rp.is_file() and sha(source)==export['sha256'] and read(rp).get('picture_request')==picture_request:
+                        baseline=source;break
+                if baseline:
+                    mixed=audio_mix.mux(document,m,baseline,output)
+                    verification=mixed['verification']
+                    report=dict(request=request,picture_request=picture_request,run_id=run_id,created_utc=now(),profile=name,
+                        config=c,sha256=sha(output),verification=verification,audio_mix=mix_report,technical_status='passed',video_packets_identical=True,
+                        visual_review_status='not_reviewed',listening_status='not_listened',editorial_review_status='not_reviewed')
+                    write(report_path,report);m['exports'].append(reference(output,document,profile=name,request=request,report=reference(report_path,document)))
+                    state.setdefault('reused_compositions',[]).append(str(baseline));state['completed'].append(name);write(work/'run.json',state);write(document,m)
+                    results.append(dict(path=str(output),verification=verification,video_packets_identical=True));continue
             folder=work/name;folder.mkdir(exist_ok=True)
             fps=c['fps'];rate=m['sample_rate'];clips=[];counts=[];clip_inputs=[];static_input=False;title_baked=False
             for i,scene in enumerate(scenes):
@@ -316,8 +353,7 @@ def render(value, selections,c,image=None,subtitles='off',title=None,force=False
                 else:filters.append(f'[{label}][{i}:v]concat=n=2:v=1:a=0[v{i}]')
                 label=f'v{i}';cursor+=counts[i]
             if subtitles!='off':
-                subdir=folder/'subtitles';subtitle_files(document,m,subdir,size,c,subtitles)
-                if extended:asset_render.subtitle_positions(subdir/'subtitles.ass',profile_scenes,rate,size)
+                subdir=folder/'subtitles';subtitle_files(document,m,subdir,size,c,subtitles,name,title)
                 # Only project-generated filenames enter filter syntax; user paths are not interpolated.
                 filters.append(f'[{label}]ass=filename=subtitles/subtitles.ass:fontsdir=subtitles/fonts[sub]');label='sub'
             if title and not title_baked:
@@ -332,8 +368,13 @@ def render(value, selections,c,image=None,subtitles='off',title=None,force=False
                 '-c:a','aac','-b:a','128k','-ar',str(rate),'-ac','1','-frames:v',str((m['frames']*fps+rate-1)//rate),
                 '-threads',str(c['threads']),'-movflags','+faststart',temporary]),folder,'final')
             verification=verify(temporary,dict(size=size,fps=fps,frames=m['frames'],sample_rate=rate))
+            if mix_report:
+                audio_check=audio_mix.verify(temporary,rate,folder=folder/'mixed-aac-verify')
+                tp=audio_check['loudness']['input_tp']
+                if tp is not None and tp>-1:raise ValueError('AAC mix true peak peste pragul existent -1 dBTP; output nepublicat.')
+                mix_report=dict(mix_report,mux_verification=audio_check)
             os.replace(temporary,output)
-            report=dict(request=request,run_id=run_id,created_utc=now(),material=m['id'],material_sha256=sha(document),profile=name,
+            report=dict(request=request,picture_request=picture_request,audio_mix=mix_report,run_id=run_id,created_utc=now(),material=m['id'],material_sha256=sha(document),profile=name,
                         config=c,sha256=sha(output),verification=verification,technical_status='passed',alignment_status=m['alignment_status'],
                         visual_review_status='not_reviewed',listening_status='not_listened',editorial_review_status='not_reviewed',warnings=state.get('warnings',[]),elapsed_seconds=time.monotonic()-started)
             if extended:asset_scenes.credits(document,output.parent,profiles=[name])

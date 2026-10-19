@@ -987,3 +987,166 @@ umană. LICENSE_UNKNOWN nu intră în exporturile acestei etape. Nu se reexecut�
 preventiv cele 28 teste assets sau exporturile deja validate. Toate restanțele
 vechi (CTC, highlight/scroll, ASS, mix, listening, continuitate, avatar/logo, AI)
 rămân active. Exporturi noi și receipts/checkpointuri pentru reluare.
+
+## Matrice curentă consolidată după recovery — 2026-10-19 UTC
+
+Această secțiune actualizează statusurile curente; tabelele anterioare rămân
+istoric. Probe: `work/media/assets-integral-20261018/recovery-20261019/`,
+run `5ba454a524f74ffc8991987e14b12cf1`, media 0.1.0, fără modificarea codului produsului.
+
+| Funcție / etapă | Status | Limită / dovadă curentă |
+|---|---|---|
+| AI01 audit/protecție, 19 scene | DONE | Gazdă/sandbox distincte, snapshot, originale păstrate. |
+| AI02 retrieval library-first | DONE pentru workflow lexical | 59 assets păstrate; fără search/download nou. Semantica AD05 rămâne PARTIAL. |
+| AI03 review/index/contact sheets | DONE tehnic | Markdown/JSON/HTML, profile și candidați numerotați; lipsurile explicite, review uman separat. |
+| AI04 selecții/overrides/fallback | DONE tehnic | 9 fotografii + 2 video + 8 fallback; 11 NEEDS_REVIEW și 8 FALLBACK. |
+| AI05 provenance/credits per profil | DONE tehnic | 19 rânduri per profil; 0 LICENSE_UNKNOWN selectate. |
+| AI06 integral HD offline/verify | DONE tehnic; PARTIAL vizual | Landscape păstrat, portrait recuperat 11 reuse/8 generate; full decode, PCM exact; numai cadre selectate. |
+| AI07 schimbare unică la scară integrală | DONE tehnic | scene-016 portrait candidate 3; 18 reuse/1 rerender, baseline intact, proof hash/mtime/audio/library. |
+| AI08 titluri/thumbnails | DONE tehnic | Titlu păstrat; două thumbnails HD cu hash/provenance/credits. |
+| AI09 probe/documentație/predare | DONE pentru etapa tehnică | Receipts și rapoarte UTC; fără repetarea regresiei istorice. |
+| CTC review accepted/rejected/corrected și rerun selectiv | DONE ca instrument; PARTIAL ca acceptanță | Cele 170 unități cu scor redus nu sunt aprobate; precizie auditivă nemăsurată. |
+| Classic subtitles, SRT/ASS, diacritice | DONE tehnic | Baseline-uri integrale și varianta portrait verificate; audiția rămâne restantă. |
+| Word highlight | PARTIAL | Fixture verificat; lipsesc ascultarea/acceptanța pe voce reală. |
+| Scrolling subtitles | PARTIAL | Fereastră discretă, nu scroll continuu; audiție lipsă. |
+| Stil ASS complet | PARTIAL | Culoare highlight/poziție liberă și restul stilului avansat încă restante. |
+| Split text înainte de TTS + merge Unicode/octet | DONE | Implementare/probe existente; durata rămâne estimată. |
+| Synthesize-parts --apply | PARTIAL | Aplicare disponibilă; sinteza privată nu se rulează preventiv. |
+| Scene editing / profile overrides / restore | DONE tehnic | CLI existent + AI07 integral; nu aprobare editorială umană. |
+| Asset discovery/library/dedup/provenance/offline | DONE tehnic pentru Commons/Openverse/local | Pexels mock verificat; live BLOCKED_OPTIONAL fără key. AD05 query semantic PARTIAL. |
+| Full integral asset export | DONE tehnic | Landscape/portrait HD plus variantă portrait; 19 scene, 8 fallback păstrate deliberat. |
+| Partial rerender / recovery | DONE tehnic | Numai scena schimbată rerandată; restul cu hash/mtime identice. |
+| Mix extern / resampling / rate/fps diferite | PARTIAL | Rate egale existente; conversii/mix explicit încă restante. |
+| Animation continuity după split | TODO | Faza se reia local; fără corecție nouă. |
+| Pauze/intro/normalizare compilație | TODO | Fără efecte configurabile suplimentare. |
+| Avatar/logo configurabil | TODO | Neintegrat. |
+| Instalare media secundară curată cu hash-uri | TODO | Fără instalări preventive. |
+| AI image backend | PARTIAL / BLOCKED pentru inferență locală | image-plan este contract; hardware/backend validate insuficient, fără instalare nouă. |
+| AI video / LLM backend | TODO opțional; probă grea BLOCKED | Nu blochează workflow-ul CPU. |
+| Listening/editorial review integral și ancore manuale | TODO / necesită reviewer uman | not_listened/not_reviewed; cadrele selectate nu sunt vizionare integrală. |
+
+Continuarea după recovery a fost AI07, apoi completarea UX de review pentru
+decizii pe scenă/profil. Următoarea poartă pentru acceptanța editorială este
+review-ul uman (170 unități CTC, cele 19 scene și cele 8 fallback-uri), fără
+aprobare automată. Backlogul tehnic rămâne ordonat: PARTIAL aproape terminate
+(ASS, highlight/scroll), workflow/review, apoi mix extern, avatar/logo; AI la final.
+Cele 41 assets graphic sunt locale; nu se declară 59 fotografii online.
+Tranzițiile integrale sunt cut; un zoom_in landscape, portrait static.
+Workflow-ul anterior întrerupt și receipts running sunt păstrate ca istoric;
+acceptanța recovery-ului este separată, fără returncode inventat.
+
+## Matrice curentă după CTC tooling / subtitrări — 2026-10-19 UTC
+
+Aceasta este matricea curentă; secțiunile precedente rămân istoric.
+Media 0.1.0, sample run `3879e965ddf84444a8dbbef6bfff34be`, dovezi în
+`work/media/subtitles-20261019/` și TEST_RESULTS.md. Recovery-ul integral
+era încheiat la pornire; nicio regresie nouă, nicio reluare sau rerandare integrală.
+
+| Funcție / etapă | Status curent | Dovadă și limită |
+|---|---|---|
+| Audit / baseline / AI01–AI09 | DONE tehnic | 19 scene, 3 MP4-uri validate anterior păstrate hash+mtime; 720 fișiere protejate identice. |
+| CTC tooling: review/export/validate/apply | DONE tehnic | Șase acțiuni, trei identități verificate, reviewer/timestamp, copii exacte, jurnal reluabil și before/after. Apply testat numai pe fixture. |
+| Acceptanță CTC umană | PARTIAL / necesită reviewer | 170 low-confidence neschimbate; nicio decizie reală aplicată, precizie semantică neacceptată. |
+| Browser scene/CTC review | DONE tehnic | Chromium 149 real, playback, candidați/profile/export/validări; zero erori JS, fără instalare nouă. |
+| Classic subtitles / Unicode / SRT | DONE tehnic | Compatibil; classic implicit pentru subtitles; default render off păstrat. |
+| Word/unit highlight | DONE tehnic | Interval existent exact, context neutru în pauze, șase sample-uri comune; dovadă raster/pixeli în ambele profile. Review auditiv separat. |
+| Scrolling subtitles | DONE tehnic | Scroll continuu determinist la schimbare de linie, safe area, cadre intermediare demonstrate. Nu mai este numai fereastră discretă. |
+| Stilizare ASS solicitată | DONE tehnic | Font/mărime/outline/shadow/margini/alignment/line spacing/highlight/safe area, preseturi și profile overrides validate. |
+| Fallback safe margins | DONE tehnic pe sample | Regula sistemică 14% landscape/10% portrait și rezervare overlays; exporturile integrale istorice rămân intacte. |
+| Cache subtitrări / invalidare minimă | DONE tehnic | Schimbările captions afectează finalul; highlight/scroll 6 reuse/0 generate, style/margini/preset 3 reuse/0. Cele 38 scene keys integrale păstrate. |
+| Scene editing / profile overrides / restore | DONE tehnic | Proba integrală anterioară 18 reuse/1 rerender și browser review curent. |
+| Asset discovery/library/dedup/provenance/offline | DONE tehnic pentru Commons/Openverse/local | 59 assets păstrate, render sample fără rețea; AD05 semantic PARTIAL, Pexels live BLOCKED_OPTIONAL fără key. |
+| Full integral assets / thumbnails / title / credits | DONE tehnic | Baseline precedent păstrat: 9 foto+2 video+8 fallback; review editorial integral restant. |
+| Partial rerender / recovery | DONE tehnic | Mecanism păstrat; nu s-a modificat recovery-ul și nu s-a repetat exportul integral. |
+| Split text înainte de TTS / merge Unicode/octet | DONE | CLI existent și probe istorice; duratele split-text rămân estimate. |
+| Synthesize-parts --apply | PARTIAL | Sinteza privată nu este rulată preventiv. |
+| Mix extern / resampling / rate/fps diferite | PARTIAL | Etapa următoare pregătită mai jos; fără mix nou în această etapă. |
+| Continuitate animație după split | TODO | Faza locală existentă nu este corectată aici. |
+| Pauze/intro/normalizare compilații | TODO | Efecte suplimentare neimplementate. |
+| Avatar/logo configurabil | TODO | Amânat conform priorității. |
+| Instalare media secundară curată | TODO | Fără instalări preventive. |
+| AI image backend | PARTIAL / inferență BLOCKED | image-plan este contract; backend/hardware insuficient validate, nicio instalare. |
+| AI video / LLM backend | TODO opțional / probă grea BLOCKED | Nu blochează workflow-ul CPU. |
+| Listening/editorial/CTC human review | TODO pentru acceptanță integrală | not_listened/not_reviewed/pending; agentul a inspectat numai cadre și screenshots. |
+
+Porțile tehnice CTC tooling, highlight, scroll și ASS sunt închise pentru
+cerințele acestei etape. Cuantizarea ASS la centisecunde/cadre și scorurile CTC
+reduse rămân vizibile; full decode și diferența A/V nu măsoară precizia semantică.
+Nu există highlight+scroll combinat: cele trei moduri sunt suficiente aici.
+Sample-ul folosește exclusiv audio existent; singurul freeze explicit este
+rotunjirea sub un cadru a clipului video din copia sample, documentată separat.
+
+## Următoarea etapă pregătită: EXTERNAL AUDIO MIX
+
+Nu se începe mixarea în această etapă. Contractul propus pentru implementare:
+
+1. Intrări explicite: master narativ existent, fișier extern cu hash/provenance,
+   sample rate/canale/durată; nicio resinteză sau realiniere a narațiunii.
+2. Configurație de mix separată: offset, gain, trim/loop explicit, fades,
+   ducking și țintă loudness opționale. Definirea regulilor de resampling și
+   plafonare este necesară înainte de a declara suportul ratelor diferite.
+3. Master original și alignment originale imuabile; master de mix/receipt nou,
+   cache separat pentru audio mix/final composition, scene reutilizabile.
+4. Proba inițială numai sample: semnal extern fixture izolat, clipping/peak,
+   A/V/full decode, rate/canale, determinism și dovada că masterul narativ nu
+   s-a schimbat. Fișierul privat pentru producție și nivelurile editoriale cer
+   selecție explicită; nu sunt inventate de agent.
+5. Acceptanță tehnică separată de audiția umană a inteligibilității/echilibrului.
+   Export integral nou numai după stabilizarea probei scurte și alegerea sursei.
+
+Nicio dependență sau licență nouă în etapa CTC/subtitrări; THIRD_PARTY_NOTICES.md
+nu necesită schimbare. Review-ul uman rămâne poarta externă a acceptanței,
+fără a bloca pregătirea următoarei etape tehnice.
+
+## Matrice curentă după EXTERNAL AUDIO MIX — 2026-10-19 UTC
+
+Aceasta actualizează matricea curentă; secțiunile precedente sunt istoric.
+Implementarea continuă contractul pregătit mai sus: master narativ imuabil,
+mix derivat/cache separat, configurare explicită, probe scurte și acceptanță
+auditivă separată. Media 0.1.0; dovezi `work/media/audio-mix-20261019/`.
+
+| Funcție / etapă | Status curent | Limită / probă |
+|---|---|---|
+| EXTERNAL AUDIO MIX | DONE tehnic | Narration + music/sfx/ambience, gain/trim/fades/loop, ducking și normalizare finală, CLI local. |
+| Resampling extern / mono-stereo | DONE tehnic | Surse 44100 stereo și 48000 stereo/mono spre 22050 mono PCM s32, durată în eșantioane exactă; downmix medie explicită. |
+| Ducking | DONE tehnic | RMS controlat: 11,989 dB pentru amount_db=12; anvelopă continuă cu attack/release și revenire în pauză. Nu este detector semantic de vorbire. |
+| SFX timing | DONE tehnic | 7,125 s în sample real cu fixture; probă controlată 2,125 s → eșantion 46856, onset măsurat 46856. |
+| Loudness / peak / atomicity | DONE tehnic | WAV -18,97 LUFS/-2,00 dBTP; AAC -19,00/-2,00; încercări incomplete păstrate și retry testat. |
+| Mix split/merge și provenance | DONE tehnic | Contextul DSP original păstrat; split→merge PCM identic; configurări muzicale diferite păstrate separat. |
+| Mix cache / compoziție video | DONE tehnic | Mix separat; schimbare audio reutilizează video cu streamhash identic, fără apel de subtitle generation. |
+| REAL MUSIC ACCEPTANCE | PARTIAL / READY_FOR_USER_AUDIO | Nu există track de muzică aprobat pentru publicare identificat în proiect; numai fixture-uri locale tehnice. |
+| Listening mix real | TODO / necesită utilizator | not_listened; metricile și tonurile nu reprezintă audiție umană. |
+| Merge narațiuni cu rate diferite | PARTIAL | Regula existentă de conversie explicită rămâne; mixerul rezolvă ratele trackurilor externe, nu rescrie narațiunea. |
+| Pauze/intro/normalizare globală compilații | TODO | Pauzele existente respectate; nu se inserează pauze/intro noi sau normalizare repetată la merge. |
+| CTC tooling / classic / highlight / scroll / ASS | DONE tehnic | Etapa precedentă păstrată; regresie media și hash-uri de protecție verificate. |
+| CTC human review | PARTIAL | 170 unități încă pending; alinierea originală nemodificată. |
+| Browser scene/CTC review | DONE tehnic | Chromium PASSED din etapa precedentă; nu s-a repetat fără schimbări UI. |
+| Integrale / scene editing / thumbnails / credits / partial rerender | DONE tehnic | Baseline-uri și scene keys păstrate; niciun integral rerandat. |
+| Assets/library/offline | DONE tehnic pentru Commons/Openverse/local | Library intactă; întregul mix/testele rulează fără rețea. AD05 semantic rămâne PARTIAL. |
+| Pexels live | BLOCKED_OPTIONAL | Cheie absentă; nu blochează mixul local. |
+| Split text înainte de TTS / merge text | DONE | Fără schimbări. Synthesize-parts privat rămâne PARTIAL, fără sinteză preventivă. |
+| Animation continuity | TODO | Continuitatea fazei mișcării vizuale după split nu este rezolvată prin mixul audio. |
+| Avatar/logo / instalare media secundară curată | TODO | Neîncepute aici. |
+| AI image backend | PARTIAL / inferență BLOCKED | Contract existent, fără instalare/inferență nouă. |
+| AI video / LLM | TODO opțional / probă grea BLOCKED | Nu blochează workflow-ul CPU. |
+| Listening/editorial integral | TODO / necesită reviewer uman | Nicio aprobare umană inventată. |
+
+Contract implementat: rețetă `material.audio_mix`, schema aditivă 1, tracks locale
+hash-bound, timpi externi în secunde și interni în eșantioane. Narration obligatorie
+implicit; sursa audio a unui asset video nu intră automat în mix. Fragmentul
+reține o fereastră din contextul părintelui și procesează acel context înainte de
+decupare: aceeași anvelopă, fază loop, fades și normalizare, inclusiv după merge.
+Merge nu unește euristic muzica și nu normalizează din nou compilația.
+
+Cli: `audio-mix --inspect/--validate/--set/--disable/--render/--verify`;
+`--render --mux-video ... --output ...` pentru copiere video existentă.
+Render obișnuit consumă mixul activ și reutilizează compoziții compatibile prin
+picture_request. Baseline-urile istorice fără acest receipt se pot remuxa explicit,
+fără adoptare bazată numai pe dimensiune/mtime. Nicio invalidare TTS/CTC/assets;
+workflow-urile declarate cu întreg manifestul input își păstrează hash-ul declarat.
+
+Următoarea poartă pentru mix real: utilizatorul furnizează/alege un fișier local
+aprobat și metadatele de drepturi, configurează nivelurile, apoi ascultă A/B.
+Nu se descarcă și nu se selectează automat muzică. Etapa tehnică nu mai este
+blocată; acceptanța reală este READY_FOR_USER_AUDIO. Backlogul independent
+rămâne în tabel; nu a fost început avatar/AI sau redesign.

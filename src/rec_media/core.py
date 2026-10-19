@@ -84,6 +84,9 @@ def config(path=None,overrides=None):
     for field,default,low,high in [('motion_amount',.04,0,.15),('transition_seconds',.2,.04,2),('title_fade_seconds',.2,0,2),('subtitle_margin_v',.07,.02,.4),('subtitle_outline',3,0,8)]:
         c.setdefault(field,default)
         if type(c[field]) not in (int,float) or not math.isfinite(c[field]) or not low<=c[field]<=high:raise ValueError(f'{field} invalid')
+    if 'subtitle_style' in c:
+        from .subtitle_style import validate
+        validate(c,p.parent)
     return c
 
 
@@ -156,7 +159,7 @@ def base(identifier, rate, frames, text='', displayed=None):
                 thumbnail_text=None,profiles={},composition={},pronunciation_rules=[],exports=[],history=[],**statuses())
 
 
-def init(identifier, audio, text=None, image=None, tts_report=None):
+def init(identifier, audio, text=None, image=None, tts_report=None,sample_rate=None):
     p=new_path(identifier); audio=Path(audio).resolve()
     info=probe(audio); streams=[s for s in info['streams'] if s['codec_type']=='audio']
     if len(streams)!=1:raise ValueError('Intrarea trebuie să conțină un singur stream audio.')
@@ -169,12 +172,18 @@ def init(identifier, audio, text=None, image=None, tts_report=None):
         if text and report['source_sha256']!=sha(text):raise ValueError('Raport TTS pentru altă versiune a textului.')
         manifest=read(resolve(tts_report,report['manifest']))
         spoken=''.join(s['spoken']+s['separator'] for s in manifest['segments'])
+    converted=None
+    if sample_rate is not None:
+        from .audio_timeline import convert
+        converted,conversion=convert(audio,sample_rate);rate=sample_rate
     p.parent.mkdir(parents=True)
     pcm=p.parent/'source.wav'
-    ff(['-i',audio,'-map','0:a:0','-ac','1','-ar',str(rate),'-c:a','pcm_s32le','-rf64','auto',pcm])
+    if converted:shutil.copy2(converted,pcm)
+    else:ff(['-i',audio,'-map','0:a:0','-ac','1','-ar',str(rate),'-c:a','pcm_s32le','-rf64','auto',pcm])
     decoded=probe(pcm)['streams'][0]
     frames=int(decoded['duration_ts'])
     m=base(identifier,rate,frames,original)
+    if converted:m['narration_conversion']=conversion
     m['text_spoken']=spoken
     m['sources']=[reference(audio,p,role='original_audio',media=info)]
     if text:m['sources'].append(reference(text,p,role='original_text'))
@@ -201,9 +210,10 @@ def lock():
         yield
 
 
-def assemble(document,m,dest):
+def assemble(document,m,dest,sample_format='s32le'):
     """Stream PCM from frame-exact source intervals, with no resampling/effects."""
     import wave
+    if sample_format not in ('s32le','f32le'):raise ValueError('Format PCM intern invalid.')
     dest=Path(dest);dest.parent.mkdir(parents=True,exist_ok=True)
     # Internal PCM sources are 32-bit mono; RF64 output is produced by FFmpeg.
     raw=dest.with_suffix('.pcm.part')
@@ -212,9 +222,9 @@ def assemble(document,m,dest):
             source=checked(document,clip['source'])
             # FFmpeg trims in source sample indices, not approximate timestamps.
             temp=dest.with_name(dest.name+'.clip.pcm')
-            ff(['-i',source,'-af',f"atrim=start_sample={clip['start']}:end_sample={clip['end']},asetpts=PTS-STARTPTS",'-f','s32le','-ac','1','-ar',str(m['sample_rate']),temp])
+            ff(['-threads','2','-protocol_whitelist','file,pipe','-i',source,'-af',f"atrim=start_sample={clip['start']}:end_sample={clip['end']},asetpts=PTS-STARTPTS",'-f',sample_format,'-ac','1','-ar',str(m['sample_rate']),temp])
             with temp.open('rb') as f:shutil.copyfileobj(f,out,1024*1024)
             temp.unlink()  # Only this invocation's generated intermediate.
     if raw.stat().st_size!=m['frames']*4:raise ValueError('Acoperirea eșantioanelor PCM este incompletă.')
-    ff(['-f','s32le','-ar',str(m['sample_rate']),'-ac','1','-i',raw,'-c:a','pcm_s32le','-rf64','auto',dest])
+    ff(['-f',sample_format,'-ar',str(m['sample_rate']),'-ac','1','-i',raw,'-c:a','pcm_'+sample_format,'-rf64','auto',dest])
     return dest

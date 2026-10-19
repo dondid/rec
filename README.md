@@ -852,3 +852,305 @@ nu o comandă pentru a reseta selecțiile. La schimbări ulterioare folosește
 Pexels rămâne opțional. Configurare locală fără afișarea cheii: `read -rs -p 'Pexels API key: ' PEXELS_API_KEY`, apoi `export PEXELS_API_KEY`.
 Fără cheie, statusul live este BLOCKED_OPTIONAL; biblioteca/Commons/Openverse/
 montajul local continuă. AI rămâne BLOCKED/OPTIONAL, fără instalări noi.
+
+## Integral assets recuperat — 2026-10-19 UTC
+
+Run `5ba454a524f74ffc8991987e14b12cf1`, media 0.1.0, pipeline `scene-assets-v1`.
+Ambele exporturi integrale sunt PASSED tehnic, 688,822 s PCM / 688,833 s video,
+1920×1080 și 1080×1920 la 30 fps. Baseline-ul landscape și noul portrait sunt în
+`output/media/assets-integral-20261018-first/assets-integral-20261018/`.
+Landscape-ul, raportul/credits și cele 19 scene ale sale au hash/mtime păstrate.
+Portrait: 11 checkpointuri valide refolosite; scena 12 trunchiată/receipt gol
+arhivată înaintea regenerării, apoi celelalte 7 scene lipsă generate. Part-urile
+istorice și stările încercărilor întrerupte sunt păstrate.
+
+Etapa AI07 din plan este confirmată integral printr-o singură schimbare portrait:
+scene-016 → candidate 3, existent local, Focus Creștin / CC BY 3.0. Rezultatul
+este în `output/media/assets-integral-20261019-portrait-edit/assets-integral-20261018/portrait/`.
+**18 scene refolosite / 1 recalculată**, baseline-urile și biblioteca de blobs/
+încercări neschimbate; audio AAC decodat identic, fără TTS sau inferență CTC.
+Este o variantă tehnică NEEDS_REVIEW, nu o alegere editorială aprobată.
+
+Review curent: `work/media/assets-integral-20261018/recovery-20261019/scene-review.md`
+și `review.html`, raport HTML local fără rețea, cu profil și alegeri goale implicit.
+Butonul exportă decizii JSON cu snapshot/scene ID/candidate ID; nu aplică editări.
+`ctc-review.html` și raportul CTC curent leagă cele 170 unități de alignment_key,
+cu ascultare din MP4-ul existent și export de decizii numai cu reviewer explicit.
+Nicio decizie nu este preselectată și alinierea nu se modifică prin aceste pagini.
+Numerele candidaților sunt valabile pentru snapshotul afișat. Candidații
+nedescărcați cer download explicit ulterior; nu există trei alternative pentru
+toate scenele. Contact sheets detaliate păstrate în `review-first-layout2/`;
+cadre din exporturile efective în `recovery-20261019/landscape/` și `portrait/`.
+
+```bash
+./media scenes assets-integral-20261018 --scene scene-016 --inspect
+./media render assets-integral-20261018 --profiles portrait --subtitles classic --resume-run 5ba454a524f74ffc8991987e14b12cf1 --rerender-changed --output-root output/media/O_DESTINATIE_NOUA
+```
+
+Inventar: **19 scene = 9 fotografii + 2 video + 8 fallback**, 11 NEEDS_REVIEW
+plus 8 FALLBACK cu review uman necesar; 0 LICENSE_UNKNOWN selectate.
+Bibliotecă: 59 înregistrări / 59 checksumuri distincte, 17 Commons, 1 Openverse,
+41 grafice locale, 0 Pexels; 46976141 octeți în total la audit.
+Două thumbnails HD, titlul existent, SRT/ASS/aliniere și credits JSON/Markdown
+sunt păstrate. Integral: tranziții cut; un zoom_in în landscape, portrait static.
+Crossfade este verificat separat în istoricul proiectului, nu folosit aici.
+
+Probele curente: `recovery-20261019/final-audit.json`,
+`partial-rerender-proof.json`, `final-acceptance.json`. Workflow-ul istoric
+rămâne păstrat cu phase=running/render failed; nu dovedește un proces activ și
+nu este declarat retroactiv reușit. Recovery-ul are receipts/acceptanță separate.
+Status vizual: numai cadre selectate; auditiv not_listened, editorial not_reviewed.
+Revizuirea umană a scenelor/fallback-urilor și a celor 170 unități CTC rămâne necesară.
+
+## CTC review și subtitrări — 2026-10-19 UTC
+
+Etapa tehnică este implementată și testată pe sample; integralele validate
+rămân baseline nemodificat. Review CTC actual, cu cele 170 unități și redare
+din MP4-ul existent: `work/media/subtitles-20261019/ctc-review-v2.html`.
+Deschide fișierul HTML local în browser. Pagina și scene review au fost testate
+în Chromium 149 existent, inclusiv redare și export; nu s-a făcut review uman.
+
+Comenzile reale pentru un raport nou și deciziile exportate de reviewer:
+
+```bash
+./media alignment-review assets-integral-20261018 --output work/media/REVIEW_NOU/ctc-review.json --media output/media/assets-integral-20261018-first/assets-integral-20261018/landscape/video.mp4
+./media alignment-review assets-integral-20261018 --validate /cale/ctc-decisions.json
+./media alignment-review assets-integral-20261018 --apply /cale/ctc-decisions.json
+```
+
+`--output` produce JSON/Markdown/HTML; alege o destinație nouă. În HTML:
+redă intervalul, consultă textul/confidence/timpii și alege explicit ACCEPT,
+ADJUST_START, ADJUST_END, ADJUST_BOTH, REJECT sau NEEDS_REVIEW. Numai câmpurile
+cerute de acțiune sunt editabile. Reviewer este obligatoriu; exportul gol,
+valorile negative/invalide și suprapunerile sunt refuzate. Exportul salvează
+timestampul UTC, `alignment_key`, `source_text_sha256`, `audio_sha256`.
+Unitățile UI sunt secunde; JSON-ul aplicabil folosește eșantioane întregi.
+
+Validarea verifică efectiv hash-urile surselor, identitatea textului și audio-ului,
+revizia alinierii, limitele audio și ordinea unităților. `audio_sha256` identifică
+cronologia verificată (hash-uri fișiere, intervale, sample rate, durată), nu MP4-ul
+de playback; text hash include textele materialului și fișierele originale.
+Rapoartele vechi fără aceste identități/timestamp nu sunt aplicabile direct:
+generează un raport nou. `--validate` nu scrie în material. `--apply` este numai
+pentru deciziile reale ale reviewerului: păstrează copii exacte înainte/după,
+fișierul deciziilor, jurnal reluabil și `before-after.json` sub
+`materials/MATERIAL/alignment-reviews/`. Aplicarea repetată este idempotentă;
+reluarea refuză fișiere schimbate în afara perechii auditate. Numai indicii
+expliciți primesc review/corecții; celelalte dicționare de unități și timpii lor
+rămân identice. Scorurile mici nu sunt șterse. Nicio decizie a testelor nu a
+fost aplicată materialului integral.
+
+Subtitrările au trei moduri distincte: `classic`, `highlight`, `scroll`.
+`subtitles` are default classic; `render` păstrează default-ul istoric off,
+iar `--subtitles classic` păstrează modul clasic. Exemple:
+
+```bash
+./media subtitles MATERIAL --profiles landscape,portrait --mode classic --ass-preset safe --output-dir work/media/SUB_CLASSIC_NOU
+./media subtitles MATERIAL --profiles landscape,portrait --mode highlight --ass-preset safe --output-dir work/media/SUB_HIGHLIGHT_NOU
+./media subtitles MATERIAL --profiles landscape,portrait --mode scroll --ass-preset safe --output-dir work/media/SUB_SCROLL_NOU
+./media --config /cale/media-styled.json render MATERIAL --profiles landscape,portrait --subtitles highlight --ass-preset boxed --resume-run RUN_ID --output-root output/media/EXPORT_NOU
+```
+
+Configurația este un fișier media complet, cu această secțiune aditivă:
+
+```json
+{
+  "subtitle_style": {
+    "preset": "safe",
+    "font": "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+    "outline": 3, "shadow": 1, "alignment": 2,
+    "color": "FFFFFF", "outline_color": "101010",
+    "background": "80000000", "highlight_color": "FFFF00",
+    "highlight_bold": false, "margin_x": 0.06,
+    "safe_area": [0.06, 0.52, 0.06, 0.10],
+    "scroll_seconds": 0.18, "scroll_lines": 3,
+    "profiles": {
+      "landscape": {"font_size": 54, "margin_v": 0.14, "line_spacing": 8},
+      "portrait": {"font_size": 58, "margin_v": 0.12, "line_spacing": 12}
+    }
+  }
+}
+```
+
+Preseturi: safe, boxed, minimal; `--ass-preset` selectează presetul, iar
+câmpurile explicite/profile overrides au precedență asupra valorilor lui.
+Culorile sunt RGB, background este ASS AARRGGBB (AA=00 opac, FF transparent).
+Marginile/safe_area sunt fracții din cadru, ordinea safe_area este left/top/right/bottom.
+Alignment este 1–9, font_size/outline/shadow/line_spacing sunt pixeli ASS.
+Line spacing este implementat prin poziții verticale măsurate pentru fiecare
+linie; nu este câmpul ASS Spacing, care controlează spațiul dintre caractere.
+Fontul trebuie să existe local; configurațiile necunoscute/invalide sunt refuzate.
+
+Highlight folosește numai intervalele existente `[start,end)`: context neutru
+în pauze, cuvântul sau display_group curent colorat, textul sursă păstrat.
+Scroll înfășoară textul o singură dată per scenă și deplasează liniile continuu,
+determinist, la limitele lor; nu schimbă fereastra la fiecare cuvânt.
+Măsurarea fontului, clip-ul safe area și rezervarea title/panel overlays
+previn overflow; un layout imposibil este refuzat. Pentru fallback graphic,
+margin_v are minimum 14% landscape și 10% portrait. Această corecție sistemică
+este verificată pe sample; MP4-urile integrale istorice nu au fost rerandate.
+ASS are rezoluție temporală de centisecundă, apoi video cuantizează la cadre;
+`layout.json` păstrează intervalele sursă și intervalele prea scurte omise.
+Diferența A/V nu certifică precizia semantică a alinierii.
+
+`subtitle_style`, modul și presetul invalidează asamblarea finală cu subtitrări;
+nu schimbă identitatea scenelor, TTS, master audio, CTC, discovery sau downloads.
+Folosește `--resume-run` și un `--output-root` nou pentru a păstra exporturile.
+Câmpurile istorice exterioare `font`/`safe_margin` sunt folosite și de scene/titluri;
+pentru schimbări exclusiv de subtitrare folosește secțiunea `subtitle_style`.
+Render adaugă referința exportului în manifestul materialului; aceasta nu este
+o schimbare de audio/aliniere. Nu se introduce acces la rețea în render.
+
+Probe: `work/media/subtitles-20261019/`, indexul `samples.html`, șase MP4-uri HD
+de 16,46 s (classic/highlight/scroll × landscape/portrait), 494 cadre fiecare,
+cu video/foto/fallback și opt unități low-confidence existente.
+`subtitle-acceptance.json` conține full decode și diferențe de pixeli;
+`style-invalidation.json` dovedește 3 reuse/0 rerender pentru schimbare de stil,
+iar `protection-after.json` confirmă cele 720 fișiere protejate și 38 scene keys.
+Statusuri: tehnic passed, browser passed, cadre selectate inspectate de agent;
+listening not_listened, editorial not_reviewed, ctc_human_review pending.
+Următoarea etapă pregătită în plan: EXTERNAL AUDIO MIX.
+
+## External audio mix — 2026-10-19 UTC
+
+Mixerul opțional produce un WAV derivat separat de masterul narativ existent.
+Nu sintetizează, nu realiniază și nu modifică audio-ul sursă. Starea tehnică și
+fișierele de probă sunt în `work/media/audio-mix-20261019/`; muzica de producție
+rămâne **READY_FOR_USER_AUDIO**. Nu s-a ales sau descărcat muzică pentru publicare.
+
+Configurația se importă aditiv în `material.json.audio_mix`, schema material 1
+rămânând compatibilă. Narațiunea este trackul obligatoriu implicit din timeline;
+lista `tracks` conține numai music, sfx și ambience. Fișier JSON de configurare:
+
+```json
+{
+  "enabled": true,
+  "tracks": [
+    {
+      "type": "music", "path": "/cale/muzica-locala.wav",
+      "source": "sursa furnizată de utilizator", "creator": "autor",
+      "license": "licența verificată de utilizator",
+      "start": 2.0, "end": 60.0,
+      "source_start": 25.0, "source_end": 90.0,
+      "volume_db": -20, "loop": false,
+      "fade_in": 1.0, "fade_out": 2.0
+    },
+    {
+      "type": "sfx", "path": "/cale/efect-local.wav",
+      "start": "00:10.500", "duration": 0.8,
+      "volume_db": -12, "fade_in": 0.01, "fade_out": 0.05
+    }
+  ],
+  "ducking": {
+    "enabled": true, "amount_db": 12,
+    "attack_ms": 40, "release_ms": 350, "threshold_db": -40
+  },
+  "normalization": {
+    "enabled": true, "loudness_lufs": -19,
+    "true_peak_db": -2, "loudness_range": 11
+  }
+}
+```
+
+Înlocuiește căile și intervalele cu valori care încap în material și în surse.
+Timpii de configurare sunt secunde sau HH:MM:SS.fff; `end` și `duration` sunt
+alternative exclusive. `source_start/source_end` aleg intervalul fișierului
+extern. Intern sunt stocate eșantioane întregi, rotunjite half-up la rata
+materialului; SFX nu este legat de FPS. Căile relative sunt relative la fișierul
+JSON importat. SHA256, codec, rată, canale, durată și număr de eșantioane decodate
+sunt păstrate împreună cu provenance; `checksum` opțional declarat este verificat.
+Metadatele lipsă rămân necunoscute, fără atribuirea unei licențe presupuse.
+
+Comenzile reale, integrate în `./media`:
+
+```bash
+./media audio-mix MATERIAL --inspect
+./media audio-mix MATERIAL --validate /cale/mix.json
+./media audio-mix MATERIAL --set /cale/mix.json
+./media audio-mix MATERIAL --render --output-dir output/media/MIX_AUDIO_NOU
+./media audio-mix MATERIAL --verify output/media/MIX_AUDIO_NOU/mix.wav
+./media audio-mix MATERIAL --render --mux-video /cale/baseline.mp4 --output output/media/MIX_VIDEO_NOU.mp4
+./media audio-mix MATERIAL --disable
+./media audio-mix MATERIAL --render --output-dir output/media/NARRATION_ONLY_NOU
+```
+
+`--validate` verifică fără schimbarea materialului. `--set` păstrează materialul
+anterior și configurația importată în `audio-mix-revisions/`; `--disable` păstrează
+rețeta dar o dezactivează. Modul disabled produce PCM narativ identic, fără DSP,
+și nu cere fișierele externe. `--verify` verifică WAV-ul mono la rata și numărul
+exact de eșantioane ale materialului, full decode, peak și loudness raportate.
+Alege directoare/fișiere de ieșire noi; comenzile refuză suprascrierea exporturilor.
+
+Sursele sunt locale, cu exact un stream audio și maximum opt canale. FFprobe,
+hash-ul și decodarea completă sunt verificate; protocoalele FFmpeg sunt limitate
+la file/pipe. Nu există streaming, cloud sau download în mixer. FFmpeg existent
+face resampling SWR determinist, fără dither, la rata materialului; downmix-ul
+mono este media aritmetică explicită a canalelor. DSP folosește float, iar WAV-ul
+final este PCM s32 mono (22050 Hz pentru narațiunea curentă). Nu normalizăm fiecare
+track: gain-ul independent este exprimat în dB și balanța rămâne explicită.
+
+Ducking afectează numai music/ambience. Detectorul de energie RMS al narațiunii
+folosește blocuri de 10 ms; nu este ASR și nu folosește/modifică timpii CTC.
+Anvelopa continuă este limitată de amount_db; attack/release sunt constantele
+de timp pentru aproximativ 63% din schimbare. Detectorul poate anticipa cel mult
+un bloc de 10 ms. Pragul și nivelurile sunt alegeri configurabile care cer audiție.
+Proba controlată măsoară reducere de **11,989 dB** pentru amount_db=12 și revenire
+în pauză; SFX nu este ducked.
+
+Fade-urile sunt nenegative și trebuie să încapă împreună în durata activă.
+O sursă scurtă cu loop=false se oprește, apoi contribuie cu tăcere; nu este repetată
+implicit. Loop este permis explicit numai pentru music/ambience. `loop_fade_ms`
+(implicit 5 ms) aplică rampe la capetele perioadei, fără schimbarea lungimii sau
+fazei perioadei; 0 dezactivează această protecție. Nu este crossfade editorial
+între melodii și nu constituie verificare auditivă a click/pop-urilor.
+
+Mixul final folosește convenția existentă −19 LUFS / −2 dBTP / LRA 11, în două
+treceri, dual_mono=false; modul efectiv linear/dynamic este raportat. Narațiunea
+nu este normalizată încă o dată separat. Suma float poate depăși 0 dBFS fără
+clipping intermediar; o sumă peste domeniul loudnorm primește atenuare globală
+raportată înainte de măsurarea finală. Cu normalization.enabled=false, se aplică
+numai atenuarea statică necesară respectării plafonului true peak, dacă este cazul.
+Nu există hard limiter ascuns. Tăcerea completă și semnalele prea scurte pentru
+LUFS sunt raportate distinct; pentru semnal măsurabil ≥3 s normalizarea activă
+cere ±1 LU și true peak cel mult ținta +0,1 dB. AAC-ul final este măsurat separat,
+cu pragul existent de cel mult −1 dBTP.
+
+Pauzele existente rămân eșantioane ale narațiunii; music/ambience pot continua
+peste ele în intervalele configurate. Mixerul nu adaugă intro-uri sau pauze și nu
+întinde vocea. Audio-ul clipurilor video rămâne mut implicit; se poate folosi
+numai dacă utilizatorul îl declară separat ca track audio local explicit.
+
+Split/merge existente păstrează acum și mixul:
+
+```bash
+./media split MATERIAL --mode extract --intervals /cale/intervale-in-esantioane.json --prefix FRAGMENT_MIX --apply
+./media merge --id COMPILATIE_MIX --materials FRAGMENT_MIX-001 ALT_MATERIAL
+```
+
+Un fragment decupează mixul calculat în contextul original, inclusiv anvelopa,
+trim, faza de loop, fade-uri și gain-ul normalizării. Nu reia normalizarea la
+începutul fragmentului. Merge păstrează contexte și offseturi distincte; muzica
+din două surse/configurații nu este unită automat. Nu se face normalizare globală
+suplimentară a compilației și nu se suprapun vocile. Split→merge PCM este identic
+cu mixul părinte. Ratele narative diferite la merge cer încă conversie explicită;
+suportul ratelor externe diferite în mixer nu schimbă această regulă.
+
+Cache-ul este separat, `work/media/audio-mix/FINGERPRINT/`, cu rețeta și hash-urile
+surselor/codului/FFmpeg. Gain/path/timing/fades/ducking schimbă numai mixul și
+asamblarea audio finală. Nu schimbă TTS, CTC, discovery, scene keys sau subtitrările.
+`--mux-video` copiază streamul video și verifică hash-ul pachetelor; inclusiv
+subtitrările arse rămân identice. `render` folosește automat mixul activ și poate
+reutiliza compoziții cu `picture_request` compatibil din exporturi anterioare,
+fără apelarea generatorului de subtitrări. Pentru un baseline istoric fără acest
+receipt nou, folosește `audio-mix --mux-video` explicit. Loturile nu invalidează
+subtitles/thumbnail/titles numai pentru schimbarea rețetei audio; workflow-urile
+care declară întregul manifest ca input păstrează invalidarea acelui input declarat.
+
+Fiecare încercare păstrează comenzi/stderr/returncode și state. Fișierele `.part`
+nu sunt cache valid; mixul se publică atomic după verificare. Retry folosește
+intermediari unici și păstrează încercările întrerupte. Pentru predarea curentă:
+`work/media/audio-mix-20261019/samples.html` oferă A/B WAV și un singur MP4 portrait
+cu highlight păstrat. Fixture-urile sunt tonuri/noise locale, exclusiv tehnice.
+technical_audio_status=passed; listening_review=not_listened. Pentru muzică reală,
+furnizează un fișier local ales/aprobat și metadatele sale, apoi validează/importă
+configurația; audiția și acceptanța editorială rămân ale utilizatorului.

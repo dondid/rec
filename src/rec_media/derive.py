@@ -183,6 +183,9 @@ def apply_split(value,plan,prefix):
                             video['audio_enabled']=False
                 scene['parent_scene_offset_samples']=start-s['start'];child['scenes'].append(scene)
         map_scene_text(child)
+        if m.get('audio_mix'):
+            from . import audio_mix
+            child['audio_mix']=audio_mix.derived([audio_mix.derive_context(p,m,a,b)]) if m['audio_mix'].get('enabled') else rebase_refs(m['audio_mix'],p,q)
         child['history'].append(dict(action='split',mode=plan['mode'],interval=[a,b],parent=m['id'],created_utc=now(),motion_note='Mișcarea se reia local în scenele decupate.'))
         for scene in child['scenes']:
             if scene.get('asset_schema'):
@@ -211,7 +214,11 @@ def merge(values,identifier,plan_only=False):
     result['composition']=deepcopy(pairs[0][1]['composition'])
     result['profiles']=deepcopy(pairs[0][1]['profiles'])
     offset=0;words=[];all_aligned=all(m['alignment'] for _,m in pairs)
+    mix_segments=[];has_mix=any(m.get('audio_mix',{}).get('enabled') for _,m in pairs)
     for ordinal,(p,m) in enumerate(pairs):
+        if has_mix:
+            from . import audio_mix
+            mix_segments.append(audio_mix.derive_context(p,m,0,m['frames'],offset))
         result['parents'].append(reference(p,q,id=m['id'],start=offset,end=offset+m['frames']))
         result['sources']+=rebase_refs(m['sources'],p,q)
         for clip in m['timeline']:
@@ -234,6 +241,7 @@ def merge(values,identifier,plan_only=False):
         result['alignment_status']='aligned_with_warnings' if result['alignment'].get('low_confidence') else 'imported_not_reviewed'
         result['text_units']=[dict(start=w['start'],end=w['end'],spoken=w['spoken'],display=w.get('display',w['spoken']),timing='word_import') for w in words]
     map_scene_text(result)
+    if has_mix:result['audio_mix']=audio_mix.derived(mix_segments)
     result['history']=[dict(action='merge',plan=plan,created_utc=now(),normalization='off',voice_overlap=False)]
     write(q,result)
     if any(s.get('asset_schema') for s in result['scenes']):

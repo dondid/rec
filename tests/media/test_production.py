@@ -40,18 +40,19 @@ def test_all_text_methods_and_manual_guards(tmp_path):
 def test_review_stale_rejected_and_corrected(tmp_path,monkeypatch):
     monkeypatch.setattr(core,'ROOT',tmp_path)
     m=core.base('review',100,500,'Ana vine.')
-    m['timeline']=[dict(start=0,end=500,timeline_start=0,source={'path':'source.wav','sha256':'fixture'})]
+    audio=tmp_path/'source.wav';audio.write_bytes(b'synthetic hash-only review fixture')
+    m['timeline']=[dict(start=0,end=500,timeline_start=0,source={'path':str(audio),'sha256':core.sha(audio)})]
     m['alignment']=dict(audio_timeline_hash=core.key(m['timeline']),words=[dict(spoken='Ana',start=0,end=100,confidence=.1,window=0),dict(spoken='vine.',start=200,end=400,confidence=.9,window=1)])
     p=tmp_path/'materials/review/material.json';core.write(p,m)
     report=review.report(p,tmp_path/'review.json');assert report['total_units']==1 and report['segments']['0'][0]['timestamp']=='00:00:00,000'
-    decisions=tmp_path/'decisions.json';core.write(decisions,dict(alignment_key=report['alignment_key'],reviewer='synthetic-test-only',decisions=[dict(index=0,status='rejected')]))
+    decisions=tmp_path/'decisions.json';core.write(decisions,dict(report,reviewer='synthetic-test-only',reviewed_utc=core.now(),decisions=[dict(index=0,status='rejected')]))
     review.apply(p,decisions)
     from rec_media.content import valid_words
     with pytest.raises(ValueError,match='rejected'):valid_words(core.load(p)[1])
-    core.write(decisions,dict(alignment_key=report['alignment_key'],reviewer='synthetic-test-only',decisions=[dict(index=0,status='corrected',start=10,end=110)]))
+    core.write(decisions,dict(report,reviewer='synthetic-test-only',reviewed_utc=core.now(),decisions=[dict(index=0,status='corrected',start=10,end=110)]))
     review.apply(p,decisions);m=core.load(p)[1]
     assert valid_words(m)[0]['confidence']==.1 and m['alignment']['low_confidence'][0]['start']==10
-    with pytest.raises(ValueError,match='revizie'):review.apply(p,decisions)
+    assert review.apply(p,decisions)['already_applied']
 
 
 def test_recovery_atomic_failure_and_corruption(tmp_path,monkeypatch):
