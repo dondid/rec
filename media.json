@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "profiles": {"landscape": [1920, 1080], "portrait": [1080, 1920], "square": [1080, 1080]},
+  "fps": 30,
+  "crf": 23,
+  "preset": "veryfast",
+  "fit": "contain",
+  "safe_margin": 0.06,
+  "font": "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+  "font_min": 24,
+  "subtitle_font_size": 48,
+  "subtitle_color": "FFFFFF",
+  "title_candidates": 5,
+  "title_max_chars": 110,
+  "thumbnail_max_chars": 70,
+  "thumbnail_font_size": 96,
+  "threads": 2
+}

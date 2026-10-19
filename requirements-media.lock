@@ -1,0 +1,4 @@
+# Baza media folosește /usr/bin/python3 și Pillow deja instalat în Debian.
+# Versiune verificată local; nu s-a executat pip și nu s-a modificat .venv audio.
+# Acesta este un pin de dependență, fără hash-uri de wheel; nu pretinde instalare pip hash-locked.
+Pillow==11.1.0

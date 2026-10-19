@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "steps": [
+    {"id":"titles","tool":"media","args":["titles","real-ro-20261016"],"inputs":[],"outputs":[]},
+    {"id":"thumbnail","tool":"media","enabled":false,"args":["thumbnail","real-ro-20261016","--text","Titlul ales manual","--profiles","youtube-landscape,shorts-portrait","--output-dir","../../output/media/workflow-example-thumbnails"],"inputs":[],"outputs":["../../output/media/workflow-example-thumbnails"]},
+    {"id":"render","tool":"media","enabled":false,"args":["render","real-ro-20261016","--profiles","youtube-landscape,shorts-portrait","--subtitles","classic"],"inputs":[],"outputs":["../../output/media/real-ro-20261016/youtube-landscape/video.mp4","../../output/media/real-ro-20261016/shorts-portrait/video.mp4"]}
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "backend":"stable-diffusion.cpp",
+  "prompt":"A quiet library, documentary illustration, no lettering",
+  "negative_prompt":"letters, watermark",
+  "width":512,
+  "height":512,
+  "seed":12345,
+  "steps":20,
+  "model_family":"stable-diffusion-1.5",
+  "executable":null,
+  "model":null
+}

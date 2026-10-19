@@ -1,0 +1,7 @@
+{
+  "engine": "piper", "voice": "ro_RO-mihai-medium", "speed": 1.0,
+  "segment_target_chars": 300, "segment_max_chars": 500,
+  "sentence_gap_ms": 150, "paragraph_gap_ms": 400,
+  "mp3_bitrate": "128k", "channels": 1,
+  "loudness_lufs": -19.0, "true_peak_db": -2.0, "loudness_range": 11.0
+}

@@ -1,0 +1,4 @@
+[
+  {"match": "API", "say": "interfața de programare", "whole_word": true},
+  {"match": "12,5%", "say": "douăsprezece virgulă cinci la sută", "whole_word": false}
+]

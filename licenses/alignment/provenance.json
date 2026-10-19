@@ -1,0 +1,39 @@
+{
+  "torch": {
+    "version": "2.8.0+cpu",
+    "files": [
+      "licenses/alignment/torch-LICENSE",
+      "licenses/alignment/torch-NOTICE"
+    ]
+  },
+  "transformers": {
+    "version": "4.56.2",
+    "files": [
+      "licenses/alignment/transformers-LICENSE"
+    ]
+  },
+  "num2words": {
+    "version": "0.5.14",
+    "files": [
+      "licenses/alignment/num2words-COPYING"
+    ]
+  },
+  "soundfile": {
+    "version": "0.13.1",
+    "files": [
+      "licenses/alignment/soundfile-LICENSE"
+    ]
+  },
+  "safetensors": {
+    "version": "0.8.0",
+    "files": [
+      "licenses/alignment/safetensors-LICENSE"
+    ]
+  },
+  "huggingface-hub": {
+    "version": "0.36.2",
+    "files": [
+      "licenses/alignment/huggingface-hub-LICENSE"
+    ]
+  }
+}

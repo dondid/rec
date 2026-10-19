@@ -1,0 +1,6 @@
+# Explicit CPU-only torch wheel, separate from the Piper environment.
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.8.0+cpu
+transformers==4.56.2
+soundfile==0.13.1
+num2words==0.5.14

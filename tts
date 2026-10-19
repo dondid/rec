@@ -1,0 +1,8 @@
+#!/bin/sh
+ROOT=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+if [ ! -x "$ROOT/.venv/bin/python" ]; then
+    echo 'Lipsește .venv. Rulează bash scripts/bootstrap.sh' >&2
+    exit 1
+fi
+export PYTHONPATH="$ROOT/src${PYTHONPATH:+:$PYTHONPATH}"
+exec "$ROOT/.venv/bin/python" -m rec_tts "$@"
