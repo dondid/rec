@@ -273,11 +273,29 @@ def normalization(raw,part,rate,frames,spec,folder):
     log=command(folder,'normalize',input_args(raw)+['-af',','.join(filters),'-ac','1','-ar',str(rate),'-c:a','pcm_s32le','-rf64','auto','-f','wav',part])
     result=verify(part,rate,frames,folder)
     tp=result['loudness']['input_tp'];target=spec['true_peak_db']
+    retries=[]
+    # Dynamic loudnorm may miss its measured target even with supplied first-pass
+    # stats. Retry from the ORIGINAL summed float input, never from normalized
+    # output or independently normalized parents. Keep every rejected attempt.
+    for attempt in range(2):
+        measured_i=result['loudness']['input_i']
+        if applied!='two_pass_final_mix' or frames/rate<3 or measured_i is None or abs(measured_i-spec['loudness_lufs'])<=1:break
+        correction=spec['loudness_lufs']-measured_i
+        if tp is not None:correction=min(correction,target-tp)
+        previous_offset=float(re.search(r':offset=([^:]+)',filters[0]).group(1))
+        offset=previous_offset+correction
+        if not -99<=offset<=99:break
+        rejected=part.with_name(part.stem+'-rejected-'+uuid.uuid4().hex+part.suffix)
+        os.replace(part,rejected)
+        retries.append(dict(path=str(rejected),verification=result,offset=previous_offset,correction_db=correction))
+        filters[0]=re.sub(r':offset=[^:]+',f':offset={offset:.12g}',filters[0])
+        log=command(folder,'normalize-retry-'+str(attempt+1),input_args(raw)+['-af',','.join(filters),'-ac','1','-ar',str(rate),'-c:a','pcm_s32le','-rf64','auto','-f','wav',part])
+        result=verify(part,rate,frames,folder);tp=result['loudness']['input_tp']
     if tp is not None and tp>target+.1:raise ValueError('Mix true peak peste ținta configurată; output nepublicat.')
     if applied=='two_pass_final_mix' and frames/rate>=3 and abs(result['loudness']['input_i']-spec['loudness_lufs'])>1:
         raise ValueError('Mix loudness în afara toleranței ±1 LU; output nepublicat.')
     actual=re.findall(r'\{\s*"input_i".*?\}',log,re.S)
-    return dict(before=first,after=result,mode=applied,pre_gain_db=pre_gain_db,normalization_type=json.loads(actual[-1]).get('normalization_type') if actual else None)
+    return dict(before=first,after=result,mode=applied,pre_gain_db=pre_gain_db,rejected_attempts=retries,normalization_type=json.loads(actual[-1]).get('normalization_type') if actual else None)
 
 
 def render(document,m,cache=None,stage='final'):

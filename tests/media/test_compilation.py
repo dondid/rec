@@ -101,6 +101,14 @@ def test_global_once_not_independent_normalization(audio,tmp_path,monkeypatch):
     monkeypatch.setattr(mix,'normalization',counted)
     q,cm,out,report=compile_one(audio,tmp_path,{'normalization':{'enabled':True}},materials=[qa,qb])
     assert len(calls)==1 and calls[0]==8*22050
+    retries=report['normalization']['rejected_attempts']
+    assert len(retries)<=2
+    for rejected in retries:
+        assert Path(rejected['path']).is_file()
+        assert rejected['verification']['frames']==8*22050
+    commands=[core.read(path)['argv'] for path in Path(report['attempt']).glob('normalize*.command.json')]
+    # All attempts process the original concatenated float, never a prior result.
+    assert len({str(args[args.index('-i')+1]) for args in commands})==1
     global_measured=report['verification']['loudness'];assert abs(global_measured['input_i']+19)<=1 and global_measured['input_tp']<=-1.9
     a,_=mix.render(qa,ma);b,_=mix.render(qb,mb)
     separately=mix.measure(a,tmp_path/'measure-a',22050)['loudness'],mix.measure(b,tmp_path/'measure-b',22050)['loudness']

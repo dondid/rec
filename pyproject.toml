@@ -11,3 +11,6 @@ dependencies = ["piper-tts==1.8.0", "soundfile==0.14.0"]
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 markers = ["integration: integration with local model and FFmpeg", "slow: long synthesis", "offline: blocked-network checks"]
+
+[tool.setuptools.package-data]
+rec_media = ["ctc_review.js", "studio/static/*.html", "studio/static/*.css", "studio/static/*.js"]

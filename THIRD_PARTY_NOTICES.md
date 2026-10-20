@@ -127,3 +127,16 @@ Alternativele video locale din aceeași probă păstrează licențe proprii:
 CC BY 3.0. Paginile originale/URL-urile licențelor și atribuirea integrală sunt în
 `work/media/asset-discovery-20261018/discovery-summary.json`, biblioteca locală și
 review-full. Corecțiile ulterioare de layout nu schimbă proveniența asset-urilor.
+
+
+## REC Studio local — 2026-10-20 UTC
+
+Interfața Studio folosește numai biblioteca standard Python (HTTP server,
+threading/subprocess, JSON/hashlib/fcntl) și HTML/CSS/JavaScript scrise în proiect.
+Nu adaugă framework-uri, npm packages, CDN, Electron, fonturi, modele sau servicii
+cloud. Preview-urile ASS reutilizează Pillow, FFmpeg/libass și fonturile deja
+documentate; narațiunea Piper și alinierea românească își păstrează proveniența.
+Waveform-ul opțional utilizează Web Audio disponibil în browser, fără bibliotecă
+externă. Playwright/Chromium 149.0.7827.55 existente sunt folosite numai la teste;
+nu se distribuie și nu se instalează un browser nou. Asset-urile personale,
+licențele/provenance și fixture-urile tehnice din probe rămân private/ignorate Git.

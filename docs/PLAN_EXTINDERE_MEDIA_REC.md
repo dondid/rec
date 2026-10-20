@@ -1150,3 +1150,213 @@ aprobat și metadatele de drepturi, configurează nivelurile, apoi ascultă A/B.
 Nu se descarcă și nu se selectează automat muzică. Etapa tehnică nu mai este
 blocată; acceptanța reală este READY_FOR_USER_AUDIO. Backlogul independent
 rămâne în tabel; nu a fost început avatar/AI sau redesign.
+
+
+## LOCAL GUI / PRODUCTION STUDIO — 2026-10-20 UTC
+
+Status etapă: IN_PROGRESS. CLI-urile rămân disponibile independent. Arhitectură:
+servicii Python comune, server HTTP local implicit 127.0.0.1:8765, UI HTML/CSS/JS
+locală fără CDN, fără build și fără dependențe suplimentare. Biblioteca standard
+reduce instalările și păstrează mediile Piper/CTC existente. Joburile folosesc
+procese Python cu servicii importate direct, nu subprocess ./media sau ./tts.
+Manifestele sunt source-of-truth; joburile au receipts separate.
+
+| Etapă | Ecrane / workflow / contract | Status |
+|---|---|---|
+| A | Audit CLI exact, materiale/work/output read-only, protecție baseline | IN_PROGRESS |
+| B | rec_media.services / rec_tts.services, aceeași validare/lock/dispatch | TODO |
+| C | Server local, host/port/no-browser, API, CSRF/origin/paths/picker | TODO |
+| D–E | Shell compact, Dashboard, Materials, creare/duplicare sigură, metadata/timeline | TODO |
+| F | Scene list/filter, preview, properties, crop/focal/profile, motion/transition, undo | TODO |
+| G | Assets/library/search/download/import, alternative grid/contact sheets/provenance | TODO |
+| H | Alignment/status și CTC integrat, playback/decizii explicite/validate/apply | TODO |
+| I | Subtitles classic/highlight/scroll, preset/stil/profile, preview backend real | TODO |
+| J | Audio Mix tracks/gain/timing/trim/loop/fades/ducking, waveform/verify | TODO |
+| K | Render/plan/invalidation, job queue/progress/log/cancel/resume/restart | TODO |
+| L | Verify/statusuri umane distincte, Outputs/player/folder/rapoarte/hash | TODO |
+| M | Settings/hardware/AI read-only, text editor/diff/save, TTS, split-text, split/merge/compilation, title/thumbnail | TODO |
+| N | API/service/CLI parity, securitate/recovery/offline și browser existent; sample izolat real | TODO |
+| O | README/TEST_RESULTS/plan/AGENTS/notices, limitări și Git read-only | TODO |
+
+Nu se oferă controale pentru backend-uri inexistente. Delete nu este implementat
+în backend și nu se activează implicit. Intro/outro/pauze suplimentare rămân TODO
+conform contractului existent. Estimările nu devin măsurători; ETA necunoscut nu
+este inventat. Review browser/tehnic/vizual/auditiv/editorial/CTC uman rămân
+separate. Testele automate nu aplică decizii materialelor reale.
+
+### Audit CLI exact pentru Studio
+
+Inventar derivat din argparse, înainte și după extragerea serviciilor.
+`gui` este singura subcomandă nouă; comenzile și opțiunile istorice rămân.
+Opțiuni globale: media `--config/--report`; tts `--config`.
+
+| CLI / comandă | Opțiuni / poziționale specifice |
+|---|---|
+| `./tts fetch-model` |  |
+| `./tts doctor` |  |
+| `./tts verify` | `audio` |
+| `./tts prepare` | `input`, `--pronunciations`, `--verbose`, `--output-dir` |
+| `./tts preview` | `input`, `--pronunciations`, `--verbose`, `-o/--output`, `--speed`, `--keep-wav`, `--force`, `--words` |
+| `./tts render` | `input`, `--pronunciations`, `--verbose`, `-o/--output`, `--speed`, `--keep-wav`, `--force` |
+| `./media doctor` |  |
+| `./media gui` | `--host`, `--port`, `--no-browser` |
+| `./media audio-mix` | `material`, `--output-dir`, `--output`, `--mux-video`, `--inspect`, `--validate`, `--set`, `--disable`, `--render`, `--verify` |
+| `./media image-plan` | `request`, `--output` |
+| `./media workflow` | `plan`, `--only`, `--disable`, `--rerun` |
+| `./media synthesize-parts` | `manifest`, `--output-dir`, `--apply` |
+| `./media split-text` | `text`, `--output-dir`, `--parts`, `--target-duration`, `--chapters`, `--delimiter`, `--manual-ranges`, `--semantic`, `--words-per-minute` |
+| `./media merge-text` | `manifest`, `--output` |
+| `./media init` | `--id`, `--audio`, `--text`, `--image`, `--tts-report`, `--sample-rate` |
+| `./media convert-narration` | `material`, `--id`, `--sample-rate` |
+| `./media compile` | `--id`, `--materials`, `--composition`, `--plan-only` |
+| `./media compile-video` | `material`, `--videos`, `--output`, `--profiles` |
+| `./media align` | `material`, `--words`, `--backend`, `--provenance`, `--model`, `--windows`, `--max-windows`, `--segments` |
+| `./media alignment-review` | `material`, `--output`, `--apply`, `--validate`, `--media` |
+| `./media scene-plan` | `material`, `--output`, `--folder`, `--images`, `--intervals` |
+| `./media scenes` | `material`, `--scene`, `--profile`, `--library-root`, `--plan`, `--inspect`, `--alternatives`, `--select`, `--replace`, `--remove`, `--restore`, `--set`, `--auto`, `--sequence`, `--approve`, `--allow-unknown-license` |
+| `./media assets search` | `--library-root`, `material`, `--scene`, `--provider`, `--query`, `--type`, `--limit`, `--mode` |
+| `./media assets queries` | `--library-root`, `material`, `--scene` |
+| `./media assets list` | `--library-root`, `--query`, `--type`, `--filters` |
+| `./media assets import` | `--library-root`, `path`, `--metadata` |
+| `./media assets download` | `--library-root`, `material`, `--scene`, `--candidate`, `--all`, `--rendition` |
+| `./media assets review` | `--library-root`, `material`, `--output-dir` |
+| `./media assets credits` | `--library-root`, `material`, `--output-dir`, `--profiles` |
+| `./media titles` | `material`, `--manual`, `--select`, `--approve`, `--unlock`, `--candidates` |
+| `./media subtitles` | `material`, `--profiles`, `--width`, `--height`, `--mode`, `--output-dir`, `--ass-preset` |
+| `./media thumbnail` | `material`, `--profiles`, `--width`, `--height`, `--text`, `--image`, `--scene`, `--variant`, `--format`, `--output-dir` |
+| `./media render` | `material`, `--profiles`, `--width`, `--height`, `--image`, `--subtitles`, `--title`, `--force`, `--plan-only`, `--ass-preset`, `--rerender-changed`, `--resume-run`, `--output-root` |
+| `./media split` | `material`, `--mode`, `--intervals`, `--parts`, `--target-seconds`, `--max-seconds`, `--prefix`, `--apply` |
+| `./media merge` | `--id`, `--materials`, `--plan-only`, `--composition` |
+| `./media batch` | `file` |
+| `./media verify` | `video` |
+
+Audit: 27 materiale, library 59 intrări în starea inițială, scene integrale 19,
+170 unități CTC low-confidence. 822 fișiere de input/material/output/model/library/
+cache inventariate hash+mtime înaintea probei; scanarea inițială nu scrie în SQLite.
+Pipeline-urile scene/CTC/Piper nu sunt modificate; serviciile sunt extrase din
+CLI. Regresia a identificat separat o limită a normalizării dinamice a compilațiilor;
+corecția limitată și probele sunt consemnate în TEST_RESULTS. Codul existent compilation.create/convert_material/video oferă deja contract
+intro/outro/pause înainte/între/după; UI îl expune prin compile și JSON, fără a
+interpreta vechile statusuri TODO ca dovadă că funcția lipsește din cod.
+
+### Matrice de implementare LOCAL GUI / PRODUCTION STUDIO
+
+Starea anterioară A–O rămâne istoric al începerii. Probe private:
+`work/studio/acceptance/`, Studio 1.0.0 / media 0.1.0.
+
+| Etapă / contract | Status | Dovadă / limită |
+|---|---|---|
+| A audit + inventar CLI + baseline | DONE | Catalog argparse, 27 materiale; snapshot hash/mtime. |
+| B servicii comune | DONE | CLI și GUI importă aceleași dispatch/validări/lock; paritate scene/TTS prepare testată. |
+| C server/API/security | DONE | gui host/port/no-browser, loopback, CSRF/origin/Host, paths/symlinks, range, upload staging, fără shell. |
+| D–E shell/Dashboard/Materials | DONE tehnic | Pagini reale Chromium, full material inspectat read-only, creare/duplicare sigură, metadata/timeline. Delete refuzat implicit. |
+| F Scene Editor / list / filters / profiles | DONE pentru controalele existente | Select/replace/remove/undo, candidate IDs, crop/focal/fit/motion/transition/video/mute/review și advanced JSON; invalidare prin scene_key. |
+| F preview editor avansat | PARTIAL | Focal click și profile separate; crop preview orientativ; fără drag crop/trim handles sau transition preview dedicat. Proba exactă prin render sample derivat. |
+| G Assets/Library/contact alternatives | DONE pentru backend imagine/video | Grid local, query/search/download explicit, provenance/credits/import/export Markdown. Library audio separată TODO; trackurile audio se importă prin mixer. |
+| H Alignment/CTC review | DONE tehnic | Identități/scoruri, navigare/playback/waveform la cerere, șase acțiuni/export/validate/apply existent; browser validează numai decizii fixture, fără apply real. |
+| H acceptanță CTC umană | PARTIAL | Cele 170 unități reale rămân pending. Playback global compus/waveform cere export audio separat. |
+| I Subtitles | DONE tehnic | Stil/preset/profile/undo, SRT/ASS, preview raster prin layout real și preflight înainte de render. Preview neutru, nu compoziție live completă. |
+| J Audio Mix / verify / waveform | DONE pentru contract existent | Track forms/gain/timing/trim/loop/fades/ducking/norm/validate/save/undo/render/mux; waveform simplu în browser pentru sursă simplă sub 80 MB. |
+| J muzică reală / listening | PARTIAL | READY_FOR_USER_AUDIO / not_listened; proba folosește fixture tehnic, fără aprobare de muzică. |
+| K Render/Jobs/Logs/progress | DONE tehnic | Procese separate, coadă JSON persistentă, progres pe run propriu/scene/phase/remux, fără ETA inventat; stdout/stderr/command/result. |
+| K cancel/resume/restart | DONE tehnic | SIGINT activ, checkpoint înainte/după identic, .part nepublicat, job original păstrat, resume și restart server cu worker activ. |
+| K Workflow/batch/synthesize-parts | DONE adaptor validat | Pași/căi normalizate, fără recursivitate/instalări/online ascuns; apply sinteză explicit. Orchestratorul istoric încă folosește intern CLI wrappers; eliminarea acestor subprocess-uri este TODO separat. |
+| L Verify/Outputs/human statuses | DONE tehnic | Hash/surse/provenance/intervale, verify audio/video/ASS, playere/range/hash/folder; statusurile umane nu devin PASSED. |
+| M Settings/hardware/AI | DONE read-only + preferințe UI | CPU/RAM/GPU nevalidat, toolchain/model/config, Pexels bool fără key, AI unavailable/blocked explicat. Toolchain settings editabile și Windows opener rămân PARTIAL/nevalidate. |
+| M text/TTS/split-text/title/thumbnail/split/merge | DONE controale backend | Draft/diff/hash, same TTS service, estimated offsets, titlu locked, thumbnails/provenance, ordine explicită și contract compilation existent. |
+| N tests/browser/sample/offline | DONE tehnic | 31 unit, 38 TTS izolat, 81 audio/compilation/Studio; Chromium 31 checks offline; active cancel/restart/resume și 822 hash+mtime/38 scene keys. Istoricul 180 passed/1 failed este păstrat și corecția focalizată documentată. |
+| O documentație/predare/Git | DONE | README/TEST_RESULTS/plan/AGENTS/notices actualizate; git status/diff read-only. Fără staging/commit/push. |
+
+Status general până la închiderea verificărilor: IN_PROGRESS. DONE tehnic se
+referă la criteriile minime de acceptanță GUI, nu la review uman integral sau
+la controalele opționale avansate. Restanțele media/AI istorice sunt păstrate.
+
+### Închidere LOCAL GUI / PRODUCTION STUDIO — 2026-10-20 UTC
+
+**DONE tehnic pentru criteriile principale de acceptanță**, cu limitele PARTIAL/
+TODO din matrice păstrate. `work/studio/acceptance/final-acceptance.json`,
+`browser-final-v6/result.json`, `recovery-final/result.json`, TEST_RESULTS.
+Serverul final este pornit explicit cu `./media gui --no-browser`,
+http://127.0.0.1:8765. CLI-urile sunt independente și păstrate.
+
+Baseline 822/822 hash+mtime și 38/38 scene keys identice. Snapshotul istoric
+720 are 718 identice și două diferențe autorizate CLI TTS/bytecode; motorul,
+config/dicționar/model/audio/cache sunt neschimbate. Normalizarea mixului are
+retry limitat din suma originală pentru limita găsită în regresie, fără
+relaxarea acceptanței și fără rerandarea baseline-urilor. Raportul comun inițial
+180 passed/1 failed și corecțiile/probele ulterioare rămân istoric distinct.
+
+Nu se declară audiție, review editorial integral sau aprobare CTC umană.
+AI greu și muzica reală păstrează statusurile anterioare; Windows opener/GPU
+Windows rămân nevalidate. Funcțiile opționale UI restante nu sunt redenumite DONE.
+
+
+## GUI HARDENING + UX COMPLETION — 2026-10-20 UTC
+
+Status DONE tehnic, cu GH06 PARTIAL pentru confirmarea vizuală Explorer. Extensie a Studio existent, fără schimbarea arhitecturii,
+CLI-urilor, motorului TTS, CTC sau pipeline-ului de pixeli al scenelor. Probe numai
+în copie izolată/sample; fără export integral. Cache preview separat în
+work/studio/previews, bibliotecă audio aditivă în același SQLite/blobs.
+
+| ID | Contract | Status |
+|---|---|---|
+| GH01 | Audit/baseline, CLI și scene keys păstrate | DONE |
+| GH02 | Crop/focal drag+click, landscape/portrait prin renderer real, cache verificat | DONE |
+| GH03 | Video trim/scrub/frame, durată/mute/short-policy reale | DONE |
+| GH04 | Cut/crossfade preview scurt prin renderer existent, cache atomic | DONE |
+| GH05 | Audio library/index/metadate/tags/provenance/play/reuse Audio Mix | DONE |
+| GH06 | Windows-path presentation/Open folder și probă browser Windows separată | PARTIAL |
+| GH07 | Loading/empty/error/disabled/cost confirmation pe toate paginile | DONE |
+| GH08 | Progres run propriu/reused/rendered/frame/log/cancel/resume | DONE |
+| GH09 | Scene navigation/next pending/save indicator/unsaved/undo | DONE |
+| GH10 | Full-screen Review mode, profile/candidate/decizii explicite/shortcuts | DONE |
+| GH11 | Outputs player/badge/size/hash/date/path/copy/folder | DONE |
+| GH12 | Settings toolchain validation și secrete mascate; security păstrată | DONE |
+| GH13 | Teste servicii/browser/offline/sample/cancel/recovery și regresii focalizate | DONE |
+| GH14 | README/TEST_RESULTS/plan/AGENTS, Git read-only | DONE |
+
+Preview-urile nu sunt aprobare editorială/auditivă. Cadrele de crop/trim sunt
+mostre de scenă înainte de subtitles/final assembly; tranzițiile folosesc un
+material temporar scurt și rendererul real, fără resinteza narațiunii. Durata
+ferestrei preview și eventualele limite trebuie afișate, fără a promite un export
+integral. Timestampurile/audio-ul/alinierea sursei și scene_key rămân imuabile
+pentru cererile exclusiv de preview. Windows/WSL au probe/statusuri distincte.
+
+### Probe și limite la închidere — Studio 1.1.0, 2026-10-20 UTC
+
+- GH02–04: cadre crop/focal prin asset_render.generate + validate_scene, trim/scrub
+  cu timestamp cerut/efectiv, clipuri cut/crossfade prin video.render pe snapshot
+  temporar. Cache content-addressed, hash/decodare/cadre exacte, fără scriere sursă.
+- GH05: studio_audio aditiv în indexul existent, tags/provenance/full decode,
+  play și reutilizare în mixer; corecție formular pentru loop_fade_ms numeric și
+  păstrarea source/checksum când se adaugă/elimină alt track. Niciun DSP schimbat.
+- GH07–11: 21 pagini, loading/empty/error/retry și formulare disabled; confirmări,
+  save/dirty/undo, navigare/shortcut-uri, fullscreen/profile/candidate review,
+  playere Outputs/hash/date/Windows path. Jobul selectat are footer și log proprii,
+  frame-uri reale și contoare rendered/reused, separate de asamblarea finală.
+- GH06: Edge Windows a încărcat efectiv Dashboard localhost:8765; CDP raportează
+  title=REC Studio, dashboard=true, ready=true, hasMaterials=true. HTTP Windows
+  200 și UNC output Test-Path=true. Open folder lansează opener-ul, dar returncode
+  Explorer nu dovedește o fereastră vizibilă; confirmarea vizuală rămâne PARTIAL.
+  Erorile vsock din încercările inițiale și cele de harness sunt păstrate.
+- GH12: toolchain fix verificat fără model loading/instalări; cheia Pexels mascată
+  și absentă din receipts/logs. Host/Origin/CSRF/scoped paths/no shell păstrate.
+- GH13: 55 teste Studio + 38 TTS izolat; Chromium 149, 46 checks offline, fără
+  erori JS/conexiuni externe. Browser Cancel/Resume + restart real: 1 checkpoint
+  reutilizat, 2 scene randate numai pe sample 16.46 s, hash+mtime păstrate;
+  HTTP Range passed. CLI scenes --inspect identic cu serviciul comun.
+- Protecție: 833/833 SHA256+mtime identice; 38 scene keys recalculabile identic
+  din intrări/pipeline nemodificate. Fără resinteză, CTC nou sau export integral.
+- Dovezi: work/studio/hardening-20261020/{services-final-v2.xml,tts-regression.xml,
+  browser-final/result.json,recovery-final/result.json,windows-browser-v4.json,
+  windows-folder.json,runtime-final.json,protection-final.json,cli-final.json,
+  final-acceptance.json,git-status-final.txt}. Date private ignorate.
+
+Nu există trim handles, animație completă la scrub sau configurare arbitrară de
+executabile. Preview maximum 960 px, fără subtitrări finale; motion la începutul
+ferestrei. Settings toolchain read-only. Review vizual selectiv de agent este
+separat de browser_review=passed, listening_review=not_listened,
+editorial_review=not_reviewed, ctc_human_review=pending. Nu există dependențe noi,
+Electron, cloud sau build/frontend nou; CLI-urile și rendererul sunt neschimbate.
+README/TEST_RESULTS/AGENTS actualizate; THIRD_PARTY nu cere alte notificări în
+această etapă. Git numai status/diff, fără staging/commit/push.

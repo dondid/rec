@@ -1239,3 +1239,170 @@ aleagă/furnizeze un fișier local și metadatele sale, apoi să asculte A/B. Nu
 descărcat/selectat muzică și nu se declară audiție umană. Index: `samples.html`.
 README, planul canonic și AGENTS actualizate; THIRD_PARTY_NOTICES neschimbat,
 deoarece se folosesc numai biblioteca standard și FFmpeg/Pillow deja documentate.
+
+
+## LOCAL GUI / PRODUCTION STUDIO — 2026-10-20 UTC
+
+Încheiere tehnică: **2026-10-20T06:54:47.170087+00:00**, Studio **1.0.0**, media **0.1.0**.
+Dovezi private: `work/studio/acceptance/`, `final-acceptance.json`.
+Sample real derivat/copie: **16,46 s**, trei scene, audio/aliniere existente.
+Run browser sample `3c865b2d49b446f19c541382f5747334`; recovery final
+`aa2f478ebc6c40d0bf3ca1c00f2f73cd`. Nu s-au sintetizat voci, recalculat CTC,
+instalat modele/browser sau rerandat integralele.
+
+**Arhitectură verificată.** `./media gui --no-browser` pornește serverul local
+pe `http://127.0.0.1:8765`. `rec_media.services` și `rec_tts.services` sunt
+extragerea orchestrării existente; CLI și worker GUI le importă direct.
+Serverul/UI folosesc biblioteca standard și assets locale, fără dependențe noi.
+Inventarul exact argparse este în plan: 37 intrări leaf pentru media+tts,
+27 materiale în proiect. CLI-ul media inspectează exact aceleași 19 scene ca
+serviciul comun; ambele help-uri CLI trec fără server/UI.
+
+| Probă | Rezultat | Dovezi și limită |
+|---|---|---|
+| Studio unit/service/security/parity final | **31 passed / 1,43 s** | `studio-unit-final.xml`; scene keys identice CLI/GUI, TTS prepare byte-identic, text draft/source/audio protejate, styles/undo/duplicate, paths/symlinks/playlists, nested workflow, job state/lock. |
+| TTS regresie în copie izolată | **38 passed / 0,30 s** | `project/tts-regression.xml`; test_text + test_pipeline, fără sinteză privată. |
+| Prima regresie sandbox | INCOMPLETE / întreruptă | Așteptare host `p9_client_rpc`, fără rezultat final; oprită explicit. Cauza testului nu este dedusă din wait channel. |
+| Regresie comună media + Studio pe gazdă, namespace offline | **180 passed / 1 failed / 786,05 s** | `regression-host.xml`; eșec reproductibil în global_once_not_independent_normalization, păstrat ca istoric. |
+| Eșec focalizat înainte de corecție | **1 failed / 16,66 s** | `compilation-focused-before.xml`; nu este atribuit GUI-ului sau eșec global al exporturilor istorice. |
+| Audio + compilation + Studio după corecție | **81 passed / 416,21 s** | `audio-compilation-studio-final.xml`; fără repetarea inutilă a testelor media neafectate deja trecute. |
+| Dovadă focalizată retry global | **1 passed / 14,92 s** | `normalization-retry-proof.xml`; sumă float originală identică la toate încercările, intermediari respinși păstrați, o singură funcție de normalizare globală. |
+| Chromium 149.0.7827.55 existent, E2E offline final | **31 checks passed**, 0 JS errors, 0 external requests | `browser-final-v6/result.json`; namespace `unshare -Urn`, loopback up, request extern abort suplimentar. |
+| Cancel activ / resume / restart worker activ | **PASSED** | `recovery-final/result.json`; un checkpoint păstrat hash+mtime, SIGINT grup worker/FFmpeg, .part nepublicat, tentativa cancelled păstrată; restart/resume reușit, range 206 verificat. |
+| Protecții date/baseline | **822/822 hash+mtime identice; 38/38 scene keys identice** | `protection-final.json`, fără surse/cache/exporturi reale modificate. |
+| CLI real / AST / JS / whitespace | **PASSED** | `cli-final.json`, parsare AST, node --check, git diff --check. |
+
+Rerulările se suprapun și nu se însumează ca teste distincte. XML-urile păstrează
+și timestampul pytest local cu offset +03; rapoartele Studio și această încheiere
+folosesc UTC. Istoricul browser v1–v6/final-v1–v5 și recovery v1–v5 rămâne păstrat,
+fără a rescrie încercările nereușite. Corecții de test: așteptări async/route
+Playwright, deschiderea details înainte de editare, predicate funcție compatibile
+cu CSP fără unsafe-eval, text thumbnail explicit și output-root unic.
+
+**Corecții reale rezultate din probe.** Căile inline JSON ale GUI-ului sunt
+normalizate din proiect înainte de serviciul comun, nu relativ la folderul jobului.
+Preflight-ul Render validează ASS cu layout-ul real înainte de scene. Progresul
+și Resume folosesc sidecar-ul run-ului propriu, observat numai sub lock media;
+nu adoptă „cel mai recent run” al aceluiași material. Actualizările job.json sunt
+protejate și între procese, evitând pierderea started/PID/completion la cancel,
+resume sau monitorizare. Normalizarea dinamică a compilației sintetice producea
+−17,99 LUFS la ținta −19, deci depășea cu 0,01 LU toleranța ±1. Corecția aplică
+maximum două încercări suplimentare din suma float originală, cu offset ajustat,
+verificare finală neschimbată și rejected_attempts păstrate. Nu normalizează
+părinții și nu folosește audio deja normalizat ca intrare. Dovadă detaliată:
+`normalization-proof-summary.json`. Cache-ul mixului folosește hash-ul codului;
+numai cererile viitoare se invalidează, fără rescrierea baseline-urilor.
+
+**Browser / funcții.** Dashboard, Materials/full real read-only, Scene Editor,
+asset diferit și undo, CTC decizii explicite cu validate **fără apply**, stil
+captions + raster ASS real, audio mix fixture, Render plan/sample/progress/log,
+verify material/video, Outputs, Settings, Text/TTS, Split Text, Alignment, Assets,
+Library, Titles/Thumbnail, Split/Merge, Workflow, Review. Au trecut și Workflow
+media + **TTS prepare** fără sinteză, Batch thumbnail cu text explicit, refuz
+CSRF/Origin/path traversal, cancel queued, restart receipts și resume. Controalele
+și serviciile GUI sunt active; vizitarea unei pagini nu declară review uman sau
+acceptanță a tuturor combinațiilor avansate de formulare.
+
+**Protecții suplimentare.** Din snapshotul istoric de 720 fișiere: 718 sunt
+identice; cele două diferențe autorizate sunt `src/rec_tts/cli.py` (extragerea
+cerută a serviciului) și bytecode-ul său. Nu se ascunde această diferență sub
+„toate fișierele TTS identice”. Motorul, rec.json, dicționarul, modelele,
+inputurile, narațiunea/alinierea și cache-ul audio sunt identice. Snapshotul
+curent de 822 date/baseline-uri este integral identic hash+mtime. Nu s-a editat
+asset_render/content/video sau identitatea pipeline-ului de scene.
+
+**Status final.** LOCAL GUI este DONE tehnic pentru criteriile principale de
+acceptanță. Preview crop/trim/transition avansat rămâne PARTIAL; Library audio
+index separat TODO (mixerul importă/validează audio), Windows opener/browser și
+GPU/VRAM Windows nevalidate. Settings toolchain/model read-only; UI defaults
+editabile, cheia Pexels numai în mediul serverului. Orchestratorul istoric
+workflow/synthesize-parts păstrează intern CLI wrappers; cererile GUI obișnuite
+folosesc direct servicii Python. Fără delete/discard al datelor comune.
+technical_status=passed; browser_review=passed;
+visual_sample_review=partial_selected_screenshots_inspected;
+listening_review=not_listened; editorial_review=not_reviewed;
+ctc_human_review=pending. Cele 170 low-confidence reale și muzica reală
+READY_FOR_USER_AUDIO rămân neaprobate. Fără operații Git de scriere.
+
+
+## 2026-10-20 UTC — GUI HARDENING + UX COMPLETION / Studio 1.1.0
+
+**Rezultat tehnic:** DONE pentru funcțiile locale; Explorer window review PARTIAL.
+Arhitectura/CLI-urile/pipeline-ul de pixeli/DSP au rămas neschimbate în această
+etapă. Probe private în `work/studio/hardening-20261020/`, copii project/project-v2/
+project-v3. Sample existent 16.46 s și material integral 19 scene inspectat read-only.
+Nicio sinteză Piper, inferență CTC sau randare integrală. Au fost generate doar
+cadre/clipuri scurte de preview și un sample pentru proba cancel/recovery.
+
+**Servicii:** `services-final-v2.xml`: **55 passed**, 7.84 s. Cele 24 teste noi
+acoperă pixeli crop identici cu rendererul direct, override portrait independent,
+source bytes/scene_key imuabile, cache corupt păstrat/refăcut, trim/scrub/capăt
+clip/mute/short policy, cut/crossfade cu 60 cadre și pixeli amestecați, refuz
+tranziție înaintea primei scene, audio metadata/full decode/checksum/dedup/provenance,
+compatibilitate cu indexul vizual/audio-first, reutilizare mixer, frame telemetry
+fără schimbarea streamhash-ului, refuz salvare concurentă și căi/opener Windows.
+Cele 31 regresii Studio existente au trecut. `tts-regression.xml`: **38 passed**
+în copia izolată, motor mock/fixture; niciun audio sau cache real TTS scris.
+
+**Browser final:** `browser-final/result.json`, Chromium **149.0.7827.55**,
+**46 checks passed**, 21 pagini, network namespace offline, **0 JS errors și
+0 external requests**. Crop landscape+portrait/drag/cache, preview păstrează
+unsaved, save/undo/next pending/keyboard și input isolation, fullscreen portrait,
+Needs review explicit fără editorial global PASSED, trim 1–2 s/scrub/mute/invalid
+end, crossfade real/cache, Library empty/filter/import44100Hz stereo/provenance,
+reuse Audio Mix și validate dirty, Settings toolchain/masked secret/UNC,
+injected HTTP500 cu retry, Outputs video/hash/copy Windows path, empty material,
+refuz path escape/toolchain arbitrar. API key sentinel absent din receipts/logs.
+
+**Joburi:** `recovery-final/result.json`: Cancel și Resume prin butoane Chromium,
+server oprit și repornit în timpul jobului reluat, job/run corect recuperate.
+Frame/fps/log live și contoare rendered/reused observate, footer pentru jobul
+selectat. Checkpointul anterior rămâne identic SHA256+mtime; rezultatul reia
+1 scenă și randează 2, numai sample, fără publicarea MP4 la cancel. Tentativa
+anulată rămâne cancelled; HTTP Range 206/100 bytes passed. Frame percent numai
+cu expected_frames explicit, scene checkpoint progress separat de final assembly;
+fără ETA inventată. Capturile selectate trim/progress au fost inspectate de agent.
+
+**Windows/WSL:** `windows-browser-v4.json`: Windows PowerShell HTTP localhost=200,
+Edge Windows existent cu profil temporar separat/CDP confirmă title REC Studio,
+dashboard=true, ready=true, hasMaterials=true pe http://127.0.0.1:8765/.
+Browserul de test a fost închis prin CDP, profilul uzual nu a fost folosit.
+`windows-folder.json`: Windows UNC Test-Path output=true; opener-ul returnează 1.
+Returncode Explorer nu dovedește fereastra vizibilă; API-ul final păstrează
+opened=null/launch_requested pentru Explorer. Confirmarea vizuală a ferestrei
+rămâne PARTIAL; copy Windows path trecut în browser. Nu s-au mutat/modificat
+fișiere media pentru Windows. Erorile inițiale vsock și probele Windows v1/v2/
+CDP console encoding sunt păstrate, nu confundate cu proba reușită finală.
+
+**Regresii/protecție:** `cli-final.json`: ./tts --help, ./media --help,
+./media gui --help passed; ./media scenes assets-integral-20261018 --inspect
+este identic cu rec_media.services.execute. Serverul final 1.1.0 pornește pe
+127.0.0.1:8765 cu --no-browser, Host/Origin/CSRF și paths scoped păstrate.
+`protection-final.json`: **833/833 hash+mtime identice**, inclusiv inputuri,
+materiale, outputs, modele, biblioteca reală, audio/cache și CLI/pixel source.
+38 scene keys se păstrează prin aceleași intrări și aceeași funcție de identitate;
+lista recalculată este în raport. Nu se atribuie aprobări umane pe baza testelor.
+
+**Istoricul încercărilor:** browser-v1 a identificat loop_fade_ms transmis ca string
+la rebuild de track; corectat numeric, source/checksum/provenance păstrate.
+Browser-v2/v3 au eșuat în aserțiunile harness (backslash JSON/empty material),
+corectate fără relaxarea condițiilor aplicației. Recovery-v1 a refuzat corect un
+stil scroll istoric prea mare pentru profilul custom mic; proba recovery folosește
+subtitles=off, fără schimbarea rendererului/stilurilor reale. Toate receipts/logs
+rămân păstrate; încercările eșuate nu sunt prezentate drept reușite.
+
+**Limite/statusuri:** maximum960px pe latura preview, motion la începutul
+ferestrei, timestamp efectiv expus lângă capătul clipului, fără trim handles.
+Toolchain paths read-only, fără model loading/weights rehash în acel probe.
+technical_status=passed; browser_review=passed;
+visual_sample_review=partial_selected_screenshots_inspected;
+listening_review=not_listened; editorial_review=not_reviewed;
+ctc_human_review=pending; windows_browser_review=passed_automated;
+explorer_visual_review=not_reviewed. Fără dependențe noi sau operații Git de scriere.
+
+Închidere runtime: `runtime-final.json` confirmă Studio1.1.0 pe
+127.0.0.1:8765, refuzuri HTTP400 explicite pentru Host/Origin/CSRF/path escape,
+Open folder launch_requested/returncode1/ opened=null, fără afirmație de fereastră
+vizibilă. `final-acceptance.json` centralizează 55+38 teste, 46 checks browser,
+833 fișiere protejate; `git-status-final.txt` păstrează starea worktree, inclusiv
+modificările preexistente. `git diff --check` passed. Serverul rămâne pornit.

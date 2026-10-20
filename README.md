@@ -1,6 +1,6 @@
 # REC: text românesc → MP3 local
 
-Utilitar CLI pentru conversia integrală a unui fișier `.txt` UTF-8 în MP3, folosind Python, **Piper 1.8.0**, vocea fixă **ro_RO-mihai-medium** și FFmpeg, pe CPU. După instalare și descărcarea explicită a modelului, conversia funcționează offline. Nu există interfață grafică, server, conturi, chei API, abonamente sau clonare de voce.
+Utilitar CLI pentru conversia integrală a unui fișier `.txt` UTF-8 în MP3, folosind Python, **Piper 1.8.0**, vocea fixă **ro_RO-mihai-medium** și FFmpeg, pe CPU. După instalare și descărcarea explicită a modelului, conversia funcționează offline. Interfața grafică locală opțională REC Studio se pornește separat prin `./media gui`; CLI-ul TTS funcționează independent, fără server, conturi, abonamente sau clonare de voce.
 
 Extensia media are CLI separat `./media`; starea și cerințele consolidate sunt în [planul media canonic](docs/PLAN_EXTINDERE_MEDIA_REC.md). Funcțiile testate și cele rămase sunt descrise mai jos, fără schimbarea fluxului audio.
 
@@ -1154,3 +1154,182 @@ cu highlight păstrat. Fixture-urile sunt tonuri/noise locale, exclusiv tehnice.
 technical_audio_status=passed; listening_review=not_listened. Pentru muzică reală,
 furnizează un fișier local ales/aprobat și metadatele sale, apoi validează/importă
 configurația; audiția și acceptanța editorială rămân ale utilizatorului.
+
+
+## GUI / Production Studio
+
+Pornește din proiect, folosind setup-ul local existent:
+
+```bash
+./media gui
+# http://127.0.0.1:8765
+./media gui --port 8766 --no-browser
+```
+
+Implicit ascultă numai pe **127.0.0.1**. `--host` schimbă explicit bind-ul;
+`--no-browser` păstrează numai URL-ul în terminal. Bind-ul verifică atomic
+portul; un port ocupat sau al doilea Studio în același proiect produce diagnostic.
+În WSL, deschide URL-ul în browserul Windows. Funcționarea interfeței este
+verificată în Chromium Linux existent; integrarea cu browserul/Explorer Windows
+rămâne dependentă de mediul utilizatorului.
+
+Nu există npm install/build, Electron sau CDN. Backend-ul folosește biblioteca
+standard Python (`http.server`, procese/thread-uri, JSON); frontend-ul este
+HTML/CSS/JavaScript local. Asset-urile UI sunt incluse și în package-data.
+Dezvoltare: editează `src/rec_media/studio/`, repornește serverul și reîncarcă
+browserul. Același server servește versiunea de utilizare locală. Nu există
+server de dezvoltare separat sau servicii SaaS.
+
+### Pagini și workflow
+
+| Pagină | Operații |
+|---|---|
+| Dashboard / Materials | Materiale existente, warnings/review pending, output-uri/joburi recente; creare din audio, inspectare timeline/metadata, duplicare sigură de configurație. |
+| Text / TTS | Draft separat, word count/durată estimată/diff/hash; prepare/preview/render/verify/doctor cu Piper neschimbat. Rezultatele complete și verificările sunt în job. |
+| Split Text | Părți/durată estimată/capitole/delimitator/intervale/propuneri lexicale; fragmentele sunt afișate cu text, offsets și estimare. Merge text și synthesize-parts cu apply explicit. |
+| Alignment / CTC Review | Identități și scoruri reale, playback pentru timeline simplu, waveform la cerere, navigare, șase decizii explicite, export/validate/apply prin jurnalul existent. |
+| Scenes | Listă/filtre, preview local, alternative numerotate, select/replace/remove/undo; controale visual/video, profil separat, focal prin click, crop/pan/zoom/motion/transitions și review. |
+| Assets / Library | Query manual/generat, search/download explicit, preview-uri locale, provenance/licență/checksum, filtre/import/credits și export review Markdown. |
+| Subtitles | classic/highlight/scroll, preset/stil/profile overrides; preview raster generat cu ASS/layout reale, export SRT/ASS, undo stil. |
+| Audio Mix | Narration + music/sfx/ambience; gain/timing/trim/loop/fades, ducking și normalizare; validate/save/disable/undo/render/verify/remux. |
+| Titles / Thumbnail | Titluri propuse/manuale/selectate/locked; thumbnails și provenance în profilele existente. |
+| Split / Merge | Split temporal și merge; ordine explicită, compile/convert-narration/compile-video, pauze/intro/outro prin contractul backend existent. |
+| Render / Workflow | Profile, captions, title, output-root nou, plan real și potențial de reuse; workflow/batch cu pași/căi validate, inputs/outputs și status partial. |
+| Jobs / Logs | Coadă serială persistentă, elapsed, progres din receipts, log, comandă structurată, rezultat, cancel și resume. |
+| Verify / Review | Surse/hash/intervale/provenance și verificări audio/video/subtitles; statusurile umane rămân distincte. |
+| Outputs / Settings | Playere/previews/download/hash/folder; preferințe UI și hardware/config/model read-only, AI availability, fără instalări. |
+
+Pentru lucrul obișnuit: alege materialul, inspectează scenele, selectează un
+candidat deja descărcat, salvează stilul sau mixul, apoi deschide Render.
+`Inspect render plan / reuse` validează inclusiv layout-ul subtitrărilor înainte
+de operații costisitoare. Reutilizarea afișată este **potențială**, calculată prin
+scene_key în run-ul ales; rendererul verifică hash, decodare și cadre exacte
+înainte de a reutiliza intermediarii. Progresul distinge scenele, asamblarea finală
+și remuxul unei compoziții existente; nu inventează frame count sau ETA.
+
+`Render scene sample` creează explicit un fragment derivat nou și îl randează
+separat. Modificarea unui asset nu pornește singură renderul. Schimbarea unei
+tranziții poate invalida și paddingul scenei precedente; Studio calculează cheile
+per profil. Stilul captions invalidează numai compoziția finală. Mixul păstrează
+masterul narativ; video asset audio este mut.
+
+Editorul de text scrie `materials/ID/studio-text.txt` și copii înainte/după,
+fără rescrierea sursei/audio-ului/alinierii materialului. Pentru resinteză alege
+explicit draftul în TTS și un output nou; apoi creează un material nou din audio
+și sursa corespunzătoare. Viteza rămâne 0.8–1.2, vocea/modelul Piper sunt fixe.
+Duratele textului sunt estimări; nu sunt timpi CTC sau plafoane temporale.
+
+În Scene/CTC Review: Space redă/oprește, ←/→ navighează, A marchează explicit
+approve/ACCEPT, N NEEDS_REVIEW. Shortcut-urile sunt inactive în câmpuri editabile
+și file picker. CTC cere reviewer și timestamp, alignment_key/audio/text hash;
+apply folosește validările, backup-urile și jurnalul existent. Browser review,
+cadrele inspectate de agent, listening, editorial și CTC human nu se aprobă reciproc.
+
+### CLI, servicii comune și recovery
+
+`./tts` și `./media` funcționează în continuare fără GUI. Parser-ele trimit
+cererile către `rec_tts.services` și `rec_media.services`; Studio importă aceleași
+servicii în worker. Nu există renderer sau reguli de mix/layout duplicate în JS.
+Workerul TTS folosește `.venv/bin/python`; media folosește Python-ul serverului,
+iar CTC păstrează `.venv-align`. Workflow/synthesize-parts reutilizează
+orchestratorul existent, care intern încă apelează wrapper-ele CLI pentru etape;
+aceasta este excepția istorică de orchestration, nu un shell expus browserului.
+
+Manifestele/material.json/media.json/library/receipts rămân source-of-truth.
+`work/studio/jobs/ID/` păstrează request/job/result/log și legătura cu run-ul propriu.
+Progresul nu adoptă alte run-uri ale aceluiași material. Cancel trimite SIGINT
+întregii sesiuni worker/FFmpeg, păstrează checkpoint-uri și nu publică `.part`.
+Resume creează un job nou, păstrează încercarea anterioară și folosește run-id-ul
+explicit al ei. Restartul serverului păstrează joburile valide și verifică PID
+plus identitatea procesului; un simplu `running` nu dovedește proces activ.
+
+Pentru un asset schimbat după un export folosește Render cu `resume_run`,
+`rerender_changed` și **output_root nou**, ca în CLI. Nu există force implicit.
+Nu se șterg încercări, materiale, output-uri sau cache-uri din Studio; discard/delete
+nu sunt oferite până la un contract backend sigur și explicit.
+
+### Offline, securitate și limite
+
+Toate asset-urile frontend sunt locale. Numai Search assets / Download candidate
+folosesc rețeaua, la acțiunea explicită a utilizatorului. Workflow-ul GUI refuză
+pașii online ascunși, recursivitatea și instalările. `fetch-model` rămâne comandă
+CLI explicită. TTS/render/alignment/mix/verify nu introduc acces la internet.
+
+API-ul verifică Host/Origin, token CSRF, tipul/dimensiunea cererii și căile după
+rezolvarea symlink-urilor. Nu execută shell/eval/comenzi arbitrare. File picker-ul
+este limitat la directoarele proiectului; fișierele externe se importă explicit.
+Upload maxim 8 MB, staging păstrat și MIME/decodare validate; fișierele mari se
+aleg deja copiate în proiect. Fișierele ascunse, sursele Python și căile din afara
+proiectului nu sunt servite; HTML/JSON/rapoarte sunt descărcări, nu cod executat.
+Playerele folosesc HTTP Range. Playlisturile/indirectările sunt refuzate înainte
+de FFmpeg. Cheia Pexels se pune în mediul serverului (`PEXELS_API_KEY`), nu în
+frontend sau rapoarte; Settings arată numai configured/unconfigured.
+
+### Hardening UX — Studio 1.1.0
+
+În Scene Editor, `Preview crop/focal` generează cadre LANDSCAPE și PORTRAIT
+prin același `asset_render` Python ca exportul. Click/drag pe sursă modifică
+focal point; browserul calculează numai coordonatele, nu pixelii crop-ului.
+Scope-ul profilului păstrează override-urile independente. Preview-ul nu salvează
+formularul și nu invalidează manifestul sursă. Cache-ul separat din
+`work/studio/previews` este verificat prin hash/decodare; încercările întrerupte
+sau corupte sunt păstrate.
+
+Video oferă source_start/source_end, scrub în secunde, frame preview real,
+durata sursei/trimului, MUTED și short-clip policy din backend. `Preview transition`
+produce un clip temporar pentru tranziția precedentă → scena curentă, numai
+cut/crossfade deja existente, cu confirmare și cache. Prima scenă nu are
+tranziție de intrare. Nu sunt procesate narațiunea sau CTC-ul sursei.
+
+Library → Audio indexează WAV/MP3/FLAC/OGG/M4A în tabelul aditiv `studio_audio`
+din același `assets/library/library.sqlite3`, folosind blobs SHA256 existente.
+Importul verifică containerul, hash-ul și decodarea completă; afișează duration,
+sample rate, channels, checksum, creator/licență/provenance și tags
+music/sfx/ambience. Play și `Use in Audio Mix` păstrează proveniența, inclusiv
+la adăugarea/eliminarea altui track. Licența necunoscută rămâne necunoscută.
+
+Scene Editor/Review oferă Previous/Next/Next NEEDS_REVIEW, indicator de salvare,
+Undo vizibil și avertizare pentru modificări nesalvate. Salvarea refuză un manifest
+schimbat concurent. Review are full-screen, toggle landscape/portrait, alternative,
+Approve/Needs review explicite. Shortcuts: Left/Right navigare, R următoarea scenă
+NEEDS_REVIEW, A approve, N needs review, Space play/pause; nu se activează în input.
+Nu se aprobă automat statusul editorial global sau CTC.
+
+Toate paginile au loading/empty/error/retry; formularele indisponibile sau incomplete
+au acțiuni disabled. Jobs/Logs arată scene rendered/reused/invalidated și frame/fps
+observate pentru comanda FFmpeg a jobului curent. Procentul de cadre apare numai
+cu un total explicit, iar progresul checkpointurilor este separat de asamblarea
+finală. Nu există ETA inventată. Cancel/Resume și restartul păstrează încercările
+și checkpointurile valide; logul și stderr-ul disponibil sunt actualizate live.
+
+Outputs oferă playere video/audio/imagine, badge din raportul de verificare, size,
+hash la cerere, created când există dovadă (modified separat), Copy path și Open
+folder. Pe WSL apar și căile `\\wsl.localhost\Debian\...` sau `C:\...`.
+Edge Windows a încărcat Dashboard-ul de pe localhost în proba automatizată
+2026-10-20; accesul UNC la output a trecut. Open folder solicită opener-ul fix,
+fără shell; returncode-ul Explorer nu confirmă vizual fereastra. Copierea căii
+rămâne disponibilă dacă interop/opener-ul nu funcționează.
+
+Settings → Validate toolchain paths verifică executabilele FFmpeg/ffprobe și
+pachetele Piper/alignment în mediile existente; nu instalează sau încarcă modele.
+Manifestele de modele sunt inspectate separat de verificarea completă a weights.
+Căile toolchain rămân read-only; preferințele UI sunt editabile. PEXELS_API_KEY
+apare numai configured/mascat și este redactată din logurile Studio.
+
+Limite: cadrele crop/trim sunt preview înainte de subtitrări/final assembly, la
+maximum 960 px pe latura mare. Motion este eșantionat la începutul ferestrei,
+nu ca animație completă; timestampul efectiv este afișat când diferă lângă capătul
+clipului. Nu există trim handles sau timeline audio profesional. Preview ASS
+folosește layout-ul real pe fundal neutru și stil salvat. Waveform la cerere
+pentru audio simplu sub 80 MB/formate decodabile de browser. Nu există editor de
+căi toolchain arbitrare, delete/discard al datelor comune sau aprobare umană prin
+metrici. Verificarea ferestrei Explorer, audiția și review-ul editorial integral
+rămân manuale. Nicio dependență nouă, niciun build/CDN/cloud; `./media gui`
+pornește în continuare după setup-ul existent.
+
+Normalizarea finală a mixului poate relua de maximum două ori filtrarea când
+FFmpeg dinamic nu atinge toleranța LUFS. Fiecare încercare recitește aceeași sumă
+float originală, păstrează rezultatul respins/comanda/măsurătorile și reverifică
+LUFS/true peak înainte de publicare. Nu normalizează separat părinții și nu
+relaxează toleranțele. Rețeta și hash-ul implementării invalidează numai cache-ul
+de mix pentru cererile viitoare; exporturile istorice nu sunt regenerate.
