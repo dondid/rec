@@ -1,3 +1,5 @@
+<img width="1918" height="865" alt="image" src="https://github.com/user-attachments/assets/f53c243b-63f8-4aca-a8b1-c8e13daffc8f" />
+
 # REC: text românesc → MP3 local
 
 Utilitar CLI pentru conversia integrală a unui fișier `.txt` UTF-8 în MP3, folosind Python, **Piper 1.8.0**, vocea fixă **ro_RO-mihai-medium** și FFmpeg, pe CPU. După instalare și descărcarea explicită a modelului, conversia funcționează offline. Interfața grafică locală opțională REC Studio se pornește separat prin `./media gui`; CLI-ul TTS funcționează independent, fără server, conturi, abonamente sau clonare de voce.
